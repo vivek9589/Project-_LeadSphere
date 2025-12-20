@@ -1,0 +1,1 @@
+package com.braininventory.leadsphere.user_service.dto;import lombok.Data;@Datapublic class RegisterRequestDto {    private String name;    private String mobileNo;    private String email;    private String password;    private String planName;}

@@ -1,0 +1,1 @@
+package com.braininventory.leadsphere.user_service.dao.impl;import com.braininventory.leadsphere.user_service.dao.Userdao;public class Userdaoimpl implements Userdao {}

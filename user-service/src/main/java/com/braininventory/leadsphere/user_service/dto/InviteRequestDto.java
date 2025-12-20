@@ -1,0 +1,1 @@
+package com.braininventory.leadsphere.user_service.dto;import lombok.Data;@Datapublic class InviteRequestDto {    private String email;    private String role; // optional, e.g. ROLE_USER, ROLE_ADMIN}

@@ -1,0 +1,1 @@
+package com.braininventory.leadsphere.user_service.vo;import lombok.Data;@Datapublic class RegisterVO {    private String name;    private String mobileNo;    private String email;    private String password;    private String planName;}

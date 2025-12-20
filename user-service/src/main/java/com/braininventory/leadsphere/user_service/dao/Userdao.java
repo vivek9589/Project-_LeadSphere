@@ -1,0 +1,1 @@
+package com.braininventory.leadsphere.user_service.dao;public interface Userdao {}

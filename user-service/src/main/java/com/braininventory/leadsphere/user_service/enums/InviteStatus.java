@@ -1,0 +1,1 @@
+package com.braininventory.leadsphere.user_service.enums;public enum InviteStatus {    PENDING, ACCEPTED, EXPIRED}
