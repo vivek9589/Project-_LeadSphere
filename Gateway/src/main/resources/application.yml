@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+jwt:
+  secret: "ThisIsASecretKeyThatMustBeAtLeast32CharactersLong!!"
+
+# We have commented out the routing section below because it is now
+# handled programmatically in GatewayConfig.java to support
+# our custom AuthenticationFilter.
+
+#  cloud:
+#    gateway:
+#      server:
+#        webmvc:
+#          routes:
+#            # Route 1: Lead Service (Secured)
+#            - id: lead-service-route
+#              uri: lb://LEAD-SERVICE
+#              predicates:
+#                - Path=/lead/**
+#              filters:
+#                - name: AuthenticationFilter
+#
+#            # Route 2: Auth Service (Public)
+#            - id: auth-service-route
+#              uri: lb://JWT-AUTH-SERVICE
+#              predicates:
+#                - Path=/auth/**
+#              filters:
+#                - PrefixPath=/api
+#
+#            # Route 3: Sales User Service (Secured)
+#            - id: user-service-route
+#              uri: lb://USER-SERVICE
+#              predicates:
+#                - Path=/sales-user/**
+#              filters:
+#                - name: AuthenticationFilter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
