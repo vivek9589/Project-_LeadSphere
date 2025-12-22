@@ -4,8 +4,27 @@ server:
 spring:
   application:
     name: api-gateway
-jwt:
-  secret: "ThisIsASecretKeyThatMustBeAtLeast32CharactersLong!!"
+
+  # --- TOKEN RELAY CONFIGURATION ---
+  # The default-filters section applies the TokenRelay to every route.
+  # This ensures that any incoming Bearer token is automatically
+  # forwarded to your microservices (Lead, User, etc.)
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay=
+      routes:
+        # Route 1: Lead Service (Secured)
+        - id: lead-service
+          uri: lb://lead-service
+          predicates:
+            - Path=/api/leads/**
+
+        # Route 2: Sales User Service (Secured)
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/sales-user/**
 
 # We have commented out the routing section below because it is now
 # handled programmatically in GatewayConfig.java to support
