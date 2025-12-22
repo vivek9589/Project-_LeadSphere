@@ -8,8 +8,8 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="leadsphere-parent" />
-        <module name="auth-service" />
         <module name="eureka-server" />
+        <module name="auth-service" />
       </profile>
       <profile name="Annotation profile for lead-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -20,7 +20,7 @@
         </processorPath>
         <module name="lead-service" />
       </profile>
-      <profile name="Annotation profile for Gateway" enabled="true">
+      <profile name="Annotation profile for User Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
