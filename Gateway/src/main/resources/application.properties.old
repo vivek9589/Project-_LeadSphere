@@ -1,0 +1,44 @@
+spring.application.name=Gateway
+
+# GATEWAY GLOBAL CONFIG
+# ==========================================
+
+server.port=8080
+
+server:
+port: 8080
+
+spring:
+application:
+name: api-gateway
+cloud:
+gateway:
+discovery:
+locator:
+enabled: true
+# This helps if your Eureka names are uppercase but you type lowercase
+lower-case-service-id: true
+routes:
+# Route 1: Auth Service
+- id: auth-service-route
+uri: lb://JWT-AUTH-SERVICE
+predicates:
+- Path=/auth/**
+filters:
+# Changes /auth/login -> /api/auth/login
+- PrefixPath=/api
+
+# Route 2: Lead Service
+- id: lead-service-route
+uri: lb://LEAD-SERVICE
+predicates:
+- Path=/lead/**
+# No filters needed since you are calling /lead/getAll directly
+
+eureka:
+client:
+service-url:
+defaultZone: http://localhost:8761/eureka/
+
+logging.level.org.springframework.cloud.gateway=TRACE
+logging.level.org.springframework.web.reactive=DEBUG

@@ -5,6 +5,7 @@ import com.braininventory.leadsphere.lead_service.dto.LeadResponseDto;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class LeadController {
 
     // ✅ Create Lead
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('lead:create')")
     public ResponseEntity<LeadResponseDto> createLead(@RequestBody LeadRequestDto leadRequestDto) {
         LeadResponseDto response = leadService.createLead(leadRequestDto);
         return ResponseEntity.status(201).body(response); // 201 Created
@@ -51,6 +53,7 @@ public class LeadController {
 
     // ✅ Delete Lead
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<LeadResponseDto> deleteLeadById(@PathVariable Long id) {
         LeadResponseDto response = leadService.deleteLeadById(id);
         return ResponseEntity.ok(response); // 200 OK
