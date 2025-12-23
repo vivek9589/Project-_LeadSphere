@@ -2,6 +2,7 @@ package com.braininventory.leadsphere.user_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,6 +31,8 @@ public class SecurityConfig {
                         // 1. ADD THIS LINE: Explicitly permit this path at the filter level
                         .requestMatchers("/sales-user/getBy/**").permitAll()
                         .requestMatchers("/sales-user/register").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/sales-user/*/password").permitAll()
+                        .requestMatchers("/notifications/**").permitAll() // Allow access without token
 
                         // 2. All other requests still require a valid JWT
                         .anyRequest().authenticated()

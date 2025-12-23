@@ -9,14 +9,15 @@ import java.util.Date;
 @Data
 public class LeadResponseDto {
     private Long id;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phoneNo;
-    private String source;
+    private String company;
+    private String contactName;
+    private String contactEmail;
+    private String contactPhone;
+    private String opportunityName;
+    private Double value;
     private LeadStatus status;
-    private String assignedTo;
+    private String source;
+    private String owner;
     private Date createdAt;
-
-    // getters and setters
+    private Date updatedAt;
 }

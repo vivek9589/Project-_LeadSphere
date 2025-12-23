@@ -7,14 +7,13 @@ import lombok.Data;
 
 @Data
 public class LeadRequestDto {
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String password;   // only for creation, not exposed in response
-    private String phoneNo;
-    private String source;
+    private String company;
+    private String contactName;
+    private String contactEmail;
+    private String contactPhone;
+    private String opportunityName;
+    private Double value;
     private LeadStatus status;
-    private String assignedTo;
-
-    // getters and setters
+    private String source;
+    private String owner;
 }

@@ -1,1 +1,31 @@
-package com.braininventory.leadsphere.user_service.service;import com.braininventory.leadsphere.user_service.dto.RegisterRequestDto;import com.braininventory.leadsphere.user_service.dto.UserRequestDto;import com.braininventory.leadsphere.user_service.dto.UserResponseDto;import com.braininventory.leadsphere.user_service.vo.ForgetPasswordVO;import com.braininventory.leadsphere.user_service.vo.LoginVO;import java.util.List;public interface UserService {    // Admin operations on Sales Users    UserResponseDto createSalesUser(UserRequestDto userRequestDto);    UserResponseDto updateSalesUser(Long id, UserRequestDto userRequestDto);    UserResponseDto deleteSalesUser(Long id);    List<UserResponseDto> getAllSalesUsers();    UserResponseDto getSalesUserById(Long id);    LoginVO findByEmail(String email);    String forgetPassword(ForgetPasswordVO forgetPasswordVO);    // register user    String register(RegisterRequestDto registerRequestDto);}
+package com.braininventory.leadsphere.user_service.service;
+
+
+import com.braininventory.leadsphere.user_service.dto.RegisterRequestDto;
+import com.braininventory.leadsphere.user_service.dto.UserRequestDto;
+import com.braininventory.leadsphere.user_service.dto.UserResponseDto;
+import com.braininventory.leadsphere.user_service.vo.LoginVO;
+
+import java.util.List;
+
+
+public interface UserService {
+
+    // Admin operations on Sales Users
+    UserResponseDto createSalesUser(UserRequestDto userRequestDto);
+    UserResponseDto updateSalesUser(Long id, UserRequestDto userRequestDto);
+    UserResponseDto deleteSalesUser(Long id);
+    List<UserResponseDto> getAllSalesUsers();
+    UserResponseDto getSalesUserById(Long id);
+    LoginVO findByEmail(String email);
+
+    public void updatePassword(Long userId, String newPassword);
+
+    List<UserResponseDto> getAllActiveSalesUser();
+
+
+    // register user
+    String register(RegisterRequestDto registerRequestDto);
+
+}
+
