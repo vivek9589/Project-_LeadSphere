@@ -1,1 +1,1 @@
-package com.braininventory.leadsphere.user_service.service;public interface MailService {    public void sendInviteEmail(String toEmail, String token);}
+package com.braininventory.leadsphere.user_service.service;public interface MailService {    public void sendInviteEmail(String toEmail, String token);    public void sendForgetPasswordEmail(String toEmail,String resetToken);}

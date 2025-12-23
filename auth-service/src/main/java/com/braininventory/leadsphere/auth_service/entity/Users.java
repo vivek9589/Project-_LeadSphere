@@ -16,10 +16,10 @@ public class Users implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String email;
     private String password;
     private String role;
-    private String userName;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -28,7 +28,7 @@ public class Users implements UserDetails {
 
     @Override
     public String getUsername() {
-        return userName; // FIX: return actual username
+        return email; // FIX: return actual username
     }
 
     @Override

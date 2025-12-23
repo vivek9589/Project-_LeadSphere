@@ -1,1 +1,13 @@
-package com.braininventory.leadsphere.user_service.service;import com.braininventory.leadsphere.user_service.dto.InviteResponseDto;import com.braininventory.leadsphere.user_service.dto.UserRequestDto;public interface InviteService {    public InviteResponseDto createInvite(String email);    public void acceptInvite(String token, UserRequestDto newUserRequest);    public InviteResponseDto getInviteStatus(Long id);}
+package com.braininventory.leadsphere.user_service.service;
+
+import com.braininventory.leadsphere.user_service.dto.InviteResponseDto;
+import com.braininventory.leadsphere.user_service.dto.UserRequestDto;
+
+public interface InviteService {
+
+    public InviteResponseDto createInvite(String email);
+
+    public void acceptInvite(String token, UserRequestDto newUserRequest);
+
+    public InviteResponseDto getInviteStatus(Long id);
+}
