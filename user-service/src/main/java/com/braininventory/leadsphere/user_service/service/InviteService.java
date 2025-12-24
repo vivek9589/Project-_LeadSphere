@@ -5,9 +5,9 @@ import com.braininventory.leadsphere.user_service.dto.UserRequestDto;
 
 public interface InviteService {
 
-    public InviteResponseDto createInvite(String email);
+    void createInvite(String email);
 
-    public void acceptInvite(String token, UserRequestDto newUserRequest);
+     // void acceptInvite(String token, UserRequestDto newUserRequest);
 
-    public InviteResponseDto getInviteStatus(Long id);
+    // InviteResponseDto getInviteStatus(Long id);
 }

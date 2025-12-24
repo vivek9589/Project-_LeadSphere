@@ -1,9 +1,6 @@
 package com.braininventory.leadsphere.user_service.controller;
 
-import com.braininventory.leadsphere.user_service.dto.RegisterRequestDto;
-import com.braininventory.leadsphere.user_service.dto.UpdatePasswordRequest;
-import com.braininventory.leadsphere.user_service.dto.UserRequestDto;
-import com.braininventory.leadsphere.user_service.dto.UserResponseDto;
+import com.braininventory.leadsphere.user_service.dto.*;
 import com.braininventory.leadsphere.user_service.service.UserService;
 import com.braininventory.leadsphere.user_service.vo.LoginVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +43,31 @@ public class UserController {
     }
 
     @GetMapping("/getAll")
-    @PreAuthorize("hasAnyAuthority('user:read', 'ROLE_ADMIN')")
-    public ResponseEntity<List<UserResponseDto>> getAllSalesUsers() {
-        return ResponseEntity.ok(userService.getAllSalesUsers());
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<List<UserResponseDto>>> getAllSalesUsers() {
+        try {
+            // 1. Fetch the data from the service
+            List<UserResponseDto> allSalesUsers = userService.getAllSalesUsers();
+
+            // 2. Wrap the result in a successful ApiResponse
+            ApiResponse<List<UserResponseDto>> response = new ApiResponse<>(
+                    200,
+                    "All sales users retrieved successfully",
+                    allSalesUsers
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            // 3. Catch any error and throw the message into the 'message' field
+            ApiResponse<List<UserResponseDto>> errorResponse = new ApiResponse<>(
+                    500,
+                    "Error retrieving users: " + e.getMessage(),
+                    null
+            );
+
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @GetMapping("/getById/{id}")
