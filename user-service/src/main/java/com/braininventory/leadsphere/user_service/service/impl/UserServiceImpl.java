@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Directly set plain text password
-        user.setPassword(newPassword);
+        user.setPassword("{noop}"+newPassword);
         userRepository.save(user);
     }
 

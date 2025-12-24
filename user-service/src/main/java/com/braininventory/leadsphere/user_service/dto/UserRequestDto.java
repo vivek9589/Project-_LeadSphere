@@ -13,6 +13,6 @@ public class UserRequestDto {
     private String lastName;
     private String email;
     private String password;
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    // @Enumerated(EnumType.STRING)
+    // private Role role;
 }
