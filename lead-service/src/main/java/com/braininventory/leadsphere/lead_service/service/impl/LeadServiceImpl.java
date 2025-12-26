@@ -3,10 +3,15 @@ package com.braininventory.leadsphere.lead_service.service.impl;
 import com.braininventory.leadsphere.lead_service.dto.*;
 import com.braininventory.leadsphere.lead_service.entity.Lead;
 import com.braininventory.leadsphere.lead_service.enums.LeadStatus;
+import com.braininventory.leadsphere.lead_service.exception.ResourceNotFoundException;
 import com.braininventory.leadsphere.lead_service.repository.LeadRepository;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -14,20 +19,26 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class LeadServiceImpl implements LeadService {
 
     private final LeadRepository leadRepository;
 
     @Autowired
-    public LeadServiceImpl(LeadRepository leadRepository) {
-        this.leadRepository = leadRepository;
-    }
+    private final ModelMapper modelMapper;
+
+
 
     @Override
     public LeadResponseDto createLead(LeadRequestDto dto) {
         Lead lead = new Lead();
         mapDtoToEntity(dto, lead);
-        return convertToResponseDto(leadRepository.save(lead));
+        //return convertToResponseDto(leadRepository.save(lead));
+
+        Lead savedLead = leadRepository.save(lead);
+        leadRepository.flush(); // ensure DB write
+        return convertToResponseDto(savedLead);
     }
 
     @Override
@@ -45,19 +56,34 @@ public class LeadServiceImpl implements LeadService {
     }
 
     @Override
+    @Transactional
     public LeadResponseDto updateLead(Long id, LeadRequestDto dto) {
+        log.info("Updating Lead with ID: {}", id);
+
+        // Use custom exception for the Global Handler to catch
         Lead lead = leadRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lead not found"));
-        mapDtoToEntity(dto, lead);
-        return convertToResponseDto(leadRepository.save(lead));
+                .orElseThrow(() -> new ResourceNotFoundException("Lead not found with id: " + id));
+
+        // ModelMapper maps only non-null fields if configured correctly
+        modelMapper.map(dto, lead);
+
+        Lead savedLead = leadRepository.save(lead);
+        return modelMapper.map(savedLead, LeadResponseDto.class);
     }
 
     @Override
+    @Transactional
     public LeadResponseDto deleteLeadById(Long id) {
+        log.info("Deleting Lead with ID: {}", id);
+
         Lead lead = leadRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lead not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Lead not found with id: " + id));
+
+        // Capture data before deletion to return to the user
+        LeadResponseDto response = modelMapper.map(lead, LeadResponseDto.class);
+
         leadRepository.delete(lead);
-        return convertToResponseDto(lead);
+        return response;
     }
 
     private void mapDtoToEntity(LeadRequestDto dto, Lead lead) {
@@ -113,7 +139,10 @@ public class LeadServiceImpl implements LeadService {
 
     @Override
     public List<LeadOwnerCountDto> getLeadsByOwner() {
-        return List.of();
+
+        List<LeadOwnerCountDto> leadsByOwner = leadRepository.getLeadsByOwner();
+        return leadsByOwner;
+
     }
 
     @Override

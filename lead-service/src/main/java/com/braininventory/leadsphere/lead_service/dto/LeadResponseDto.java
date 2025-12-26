@@ -4,6 +4,7 @@ package com.braininventory.leadsphere.lead_service.dto;
 import com.braininventory.leadsphere.lead_service.enums.LeadStatus;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -18,6 +19,6 @@ public class LeadResponseDto {
     private LeadStatus status;
     private String source;
     private String owner;
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDateTime  createdAt;
+    private LocalDateTime updatedAt;
 }

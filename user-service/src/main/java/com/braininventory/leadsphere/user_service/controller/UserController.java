@@ -3,6 +3,7 @@ package com.braininventory.leadsphere.user_service.controller;
 import com.braininventory.leadsphere.user_service.dto.*;
 import com.braininventory.leadsphere.user_service.service.UserService;
 import com.braininventory.leadsphere.user_service.vo.LoginVO;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,11 +37,6 @@ public class UserController {
         return ResponseEntity.ok(userService.updateSalesUser(id, userRequestDto));
     }
 
-    @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')") // Admin only for deletions
-    public ResponseEntity<UserResponseDto> deleteSalesUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.deleteSalesUser(id));
-    }
 
     @GetMapping("/getAll")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -82,12 +78,7 @@ public class UserController {
         return userService.findByEmail(email);
     }
 
-    // Registration is often public or restricted differently
-    @PostMapping("/register")
-    @PreAuthorize("permitAll()")
-    public String register(@RequestBody RegisterRequestDto registerRequestDto) {
-        return userService.register(registerRequestDto);
-    }
+
 
     @PutMapping("/{id}/password")
     @PreAuthorize("permitAll()")
@@ -104,6 +95,41 @@ public class UserController {
     {
         return userService.getAllActiveSalesUser();
     }
+
+
+    // standard follow
+    @GetMapping("/detailsBy/{id}")
+    public ResponseEntity<StandardResponse<UserResponse>> getUserById(@PathVariable("id") Long userId) {
+        UserResponse response = userService.getUserDetails(userId);
+        return ResponseEntity.ok(StandardResponse.ok(response, "User details retrieved successfully"));
+    }
+
+    @PatchMapping("/updateBy/{id}")
+    public ResponseEntity<StandardResponse<UserResponse>> updateUser(
+            @PathVariable("id") Long userId,
+            @Valid @RequestBody UserUpdateRequest updateRequest) {
+
+        UserResponse response = userService.editUser(userId, updateRequest);
+        return ResponseEntity.ok(StandardResponse.ok(response, "User updated successfully"));
+    }
+
+    @GetMapping("/active/count")
+    public ResponseEntity<StandardResponse<Long>> getActiveUserCount() {
+        long count = userService.countActiveUsers();
+        return ResponseEntity.ok(StandardResponse.ok(count, "Active user count retrieved"));
+    }
+
+    @DeleteMapping("/deleteBy/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')") // High-level security best practice
+    public ResponseEntity<StandardResponse<UserResponse>> deleteSalesUser(@PathVariable Long id) {
+
+        UserResponse deletedUser = userService.deleteSalesUser(id);
+
+        return ResponseEntity.ok(
+                StandardResponse.ok(deletedUser, "User with ID " + id + " has been deleted successfully")
+        );
+    }
+
 
 
 
