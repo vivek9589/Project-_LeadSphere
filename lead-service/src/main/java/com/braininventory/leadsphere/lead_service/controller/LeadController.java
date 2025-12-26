@@ -1,10 +1,8 @@
 package com.braininventory.leadsphere.lead_service.controller;
 
-import com.braininventory.leadsphere.lead_service.dto.ApiResponse;
-import com.braininventory.leadsphere.lead_service.dto.LeadRequestDto;
-import com.braininventory.leadsphere.lead_service.dto.LeadResponseDto;
-import com.braininventory.leadsphere.lead_service.dto.LeadSummaryDto;
+import com.braininventory.leadsphere.lead_service.dto.*;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,16 +38,22 @@ public class LeadController {
         return ResponseEntity.ok(ApiResponse.success("Leads retrieved successfully", data));
     }
 
+    // Use PatchMapping for partial updates, or PutMapping for full updates
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<LeadResponseDto>> updateLead(@PathVariable Long id, @RequestBody LeadRequestDto dto) {
+    public ResponseEntity<StandardResponse<LeadResponseDto>> updateLead(
+            @PathVariable Long id,
+            @Valid @RequestBody LeadRequestDto dto) {
+
         LeadResponseDto data = leadService.updateLead(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Lead updated successfully", data));
+        return ResponseEntity.ok(StandardResponse.ok(data, "Lead updated successfully"));
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<LeadResponseDto>> deleteLead(@PathVariable Long id) {
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')") // Best practice for delete operations
+    public ResponseEntity<StandardResponse<LeadResponseDto>> deleteLead(@PathVariable Long id) {
+
         LeadResponseDto data = leadService.deleteLeadById(id);
-        return ResponseEntity.ok(ApiResponse.success("Lead deleted successfully", data));
+        return ResponseEntity.ok(StandardResponse.ok(data, "Lead deleted successfully"));
     }
 
     @GetMapping("/summary")
@@ -57,4 +61,13 @@ public class LeadController {
         LeadSummaryDto data = leadService.getLeadSummary();
         return ResponseEntity.ok(ApiResponse.success("Summary retrieved successfully", data));
     }
+
+    @GetMapping("/leadsByOwner")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public List<LeadOwnerCountDto> getleadsByOwner() {
+        return leadService.getLeadsByOwner();
+
+    }
+
+
 }

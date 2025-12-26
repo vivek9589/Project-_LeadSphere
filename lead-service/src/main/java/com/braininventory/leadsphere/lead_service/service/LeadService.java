@@ -19,6 +19,8 @@ public interface LeadService {
 
 
     // Dashboard api's
+
+
     // Returns total leads, converted leads, and conversion percentage
     LeadSummaryDto getLeadSummary();
 
