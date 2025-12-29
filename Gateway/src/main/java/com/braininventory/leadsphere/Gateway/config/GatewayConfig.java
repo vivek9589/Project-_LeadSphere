@@ -18,47 +18,57 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 
-@Configuration
-public class GatewayConfig {
+    @Configuration
+    public class GatewayConfig {
 
-    // ADDED: Global CORS Filter for MVC Gateway
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
+        // ADDED: Global CORS Filter for MVC Gateway
+        @Bean
+        public CorsFilter corsFilter() {
+            CorsConfiguration config = new CorsConfiguration();
 
-        // 1. ADD BOTH: localhost for local dev and your machine's IP for network access
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://192.168.29.198:5173" // Your frontend IP address
-        ));
+            // 1. ADD BOTH: localhost for local dev and your machine's IP for network access
+            config.setAllowedOrigins(List.of(
+                    "http://localhost:5173",
+                    "http://localhost:3000",
+                    "http://192.168.29.198:5173" // Your frontend IP address
+            ));
 
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
+            config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+            config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
 
-        // Required if you send cookies or use "Authorization" headers
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+            // Required if you send cookies or use "Authorization" headers
+            config.setAllowCredentials(true);
+            config.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/**", config);
 
-        return new CorsFilter(source);
+            return new CorsFilter(source);
+        }
+
+
+
+        @Bean
+        public RouterFunction<ServerResponse> gatewayRoutes() {
+            return route("auth_service")
+                    .route(path("/api/auth/**"), http())
+                    .filter(lb("JWT-AUTH-SERVICE"))
+                    .build()
+
+                    .and(route("lead_service")
+                            .route(path("/lead/**"), http())
+                            .filter(lb("LEAD-SERVICE"))
+                            .build())
+
+                    .and(route("user_service")
+                            .route(path("/sales-user/**"), http())
+                            .filter(lb("USER-SERVICE"))
+                            .build())
+
+                    // ADDED: Analytics Service Route
+                    .and(route("analytics_service")
+                            .route(path("/analytics/**"), http())
+                            .filter(lb("ANALYTICS-SERVICE"))
+                            .build());
+        }
     }
-    @Bean
-    public RouterFunction<ServerResponse> gatewayRoutes() {
-        return route("auth_service")
-                .route(path("/api/auth/**"), http())
-                .filter(lb("JWT-AUTH-SERVICE"))
-                .build()
-
-                .and(route("lead_service")
-                        .route(path("/lead/**"), http())
-                        .filter(lb("LEAD-SERVICE"))
-                        .build())
-
-                .and(route("user_service")
-                        .route(path("/sales-user/**"), http())
-                        .filter(lb("USER-SERVICE"))
-                        .build());
-    }
-}

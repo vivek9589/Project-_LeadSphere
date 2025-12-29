@@ -1,25 +1,38 @@
 package com.braininventory.leadsphere.lead_service.repository;
 
 import com.braininventory.leadsphere.lead_service.dto.LeadOwnerCountDto;
+import com.braininventory.leadsphere.lead_service.dto.LeadResponseDto;
 import com.braininventory.leadsphere.lead_service.dto.LeadSourceCountDto;
 import com.braininventory.leadsphere.lead_service.entity.Lead;
 import com.braininventory.leadsphere.lead_service.enums.LeadStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
 @Repository
-public interface LeadRepository extends JpaRepository<Lead,Long> {
+public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificationExecutor<Lead> {
 
     // long findBystatus(LeadStatus status);
     // Change findBystatus to countByStatus
     long countByStatus(LeadStatus status);
 
 
+    List<Lead> findByOwner(String ownerName);
+
+
+
+    @Query("SELECT new com.braininventory.leadsphere.lead_service.dto.LeadOwnerCountDto(l.owner, COUNT(l)) " +
+            "FROM Lead l " +
+            "WHERE l.owner = :ownerName " +
+            "GROUP BY l.owner")
+
+    List<LeadResponseDto> getLeadsByOwnerName(@Param("ownerName") String ownerName);
 
     // getLeadsByOwner
 
@@ -50,7 +63,13 @@ public interface LeadRepository extends JpaRepository<Lead,Long> {
 
 
 
+    /*   gemini code
 
+    @Query("SELECT new com.leadsphere.dto.LeadOwnerCountDto(l.owner, COUNT(l)) " +
+            "FROM Lead l WHERE l.createdAt BETWEEN :start AND :end GROUP BY l.owner")
+    List<LeadOwnerCountDto> getLeadsByOwnerFiltered(LocalDateTime start, LocalDateTime end);
+
+*/
 
 
 }
