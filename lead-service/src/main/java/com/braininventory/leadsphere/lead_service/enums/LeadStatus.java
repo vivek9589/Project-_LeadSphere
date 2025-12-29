@@ -6,7 +6,8 @@ public enum LeadStatus {
     NEW,
     QUALIFIED,
     PROPOSITION,
-    WON;
+    WON,
+    REJECTED;
 
     @JsonCreator
     public static LeadStatus fromString(String value) {

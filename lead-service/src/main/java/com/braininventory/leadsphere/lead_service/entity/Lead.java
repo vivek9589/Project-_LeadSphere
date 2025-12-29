@@ -54,14 +54,14 @@ public class Lead {
 
     private String source;
 
-    //ddddddddddd@NotBlank(message = "Lead owner is required")
+    //@NotBlank(message = "Lead owner is required")
     private String owner; // Linked to assigned person
 
-   // @CreationTimestamp
+   @CreationTimestamp
     @Column(updatable = false, nullable = false)
     private LocalDateTime  createdAt;
 
-   // @UpdateTimestamp
+   @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime  updatedAt;
 }

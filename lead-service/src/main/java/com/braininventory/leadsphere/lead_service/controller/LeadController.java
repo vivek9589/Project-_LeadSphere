@@ -1,19 +1,29 @@
 package com.braininventory.leadsphere.lead_service.controller;
 
 import com.braininventory.leadsphere.lead_service.dto.*;
+import com.braininventory.leadsphere.lead_service.service.LeadDashboardService;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 @RestController
+@Slf4j
 @RequestMapping("/lead")
 public class LeadController {
 
     private final LeadService leadService;
+
+    @Autowired
+    LeadDashboardService leadDashboardService;
 
     @Autowired
     public LeadController(LeadService leadService) {
@@ -56,17 +66,39 @@ public class LeadController {
         return ResponseEntity.ok(StandardResponse.ok(data, "Lead deleted successfully"));
     }
 
-    @GetMapping("/summary")
-    public ResponseEntity<ApiResponse<LeadSummaryDto>> getLeadSummary() {
-        LeadSummaryDto data = leadService.getLeadSummary();
-        return ResponseEntity.ok(ApiResponse.success("Summary retrieved successfully", data));
+    @GetMapping("/getleadByOwner/{id}")
+    public ResponseEntity<StandardResponse<List<LeadResponseDto>>> getLeadsByOwnerId(
+            @PathVariable Long id, HttpServletRequest request) {
+
+        log.info("Fetching leads for ownerId: {}", id);
+        List<LeadResponseDto> leads = leadService.getLeadsByOwnerId(id);
+
+        if (leads.isEmpty()) {
+            log.warn("No leads found for ownerId {}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(StandardResponse.error("No leads found", null, request.getRequestURI()));
+        }
+
+        log.debug("Found {} leads for ownerId {}", leads.size(), id);
+        StandardResponse<List<LeadResponseDto>> response =
+                StandardResponse.ok(leads, "Leads fetched successfully");
+        response.setPath(request.getRequestURI());
+
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/leadsByOwner")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public List<LeadOwnerCountDto> getleadsByOwner() {
-        return leadService.getLeadsByOwner();
 
+
+
+    @GetMapping("/internal/stats")
+    public ResponseEntity<StandardResponse<LeadDashboardResponse>> getInternalStats(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(required = false) String owner) {
+
+        return ResponseEntity.ok(StandardResponse.ok(
+                leadDashboardService.getFilteredDashboard(start, end, owner),
+                "Data fetched successfully"));
     }
 
 

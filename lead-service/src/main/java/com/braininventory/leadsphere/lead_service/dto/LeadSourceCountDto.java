@@ -1,9 +1,13 @@
 package com.braininventory.leadsphere.lead_service.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 
 @Data
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class LeadSourceCountDto {
     private String source;
     private Long count;
@@ -14,6 +18,7 @@ public class LeadSourceCountDto {
         this.count = count;
         this.color = mapColor(source); // assign color based on source
     }
+
 
     private String mapColor(String source) {
         switch (source) {

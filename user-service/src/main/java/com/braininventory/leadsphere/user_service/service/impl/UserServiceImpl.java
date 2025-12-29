@@ -148,7 +148,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponseDto> getAllActiveSalesUser() {
-        List<User> byIsActive = userRepository.findByIsActive(true);
+        List<User> byIsActive = userRepository.findByIsActiveAndRole(true,Role.SALES_USER);
 
         return byIsActive.stream()
                 .map(this ::convertToResponseDto)
@@ -256,7 +256,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public long countActiveUsers() {
         log.info("Calculating total active users");
-        return userRepository.countByIsActiveTrue();
+        return userRepository.countByIsActiveTrueAndRole(Role.SALES_USER);
     }
 
 

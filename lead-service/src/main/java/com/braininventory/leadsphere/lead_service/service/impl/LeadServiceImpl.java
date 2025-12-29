@@ -2,19 +2,18 @@ package com.braininventory.leadsphere.lead_service.service.impl;
 
 import com.braininventory.leadsphere.lead_service.dto.*;
 import com.braininventory.leadsphere.lead_service.entity.Lead;
-import com.braininventory.leadsphere.lead_service.enums.LeadStatus;
 import com.braininventory.leadsphere.lead_service.exception.ResourceNotFoundException;
+import com.braininventory.leadsphere.lead_service.feign.UserClient;
 import com.braininventory.leadsphere.lead_service.repository.LeadRepository;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +26,9 @@ public class LeadServiceImpl implements LeadService {
 
     @Autowired
     private final ModelMapper modelMapper;
+
+    @Autowired
+    private UserClient userClient;
 
 
 
@@ -86,6 +88,25 @@ public class LeadServiceImpl implements LeadService {
         return response;
     }
 
+    @Override
+    public List<LeadResponseDto> getLeadsByOwnerId(Long id) {
+        UserResponseDto salesUser = userClient.getSalesUserById(id);
+        String ownerName = salesUser.getFirstName() + " " + salesUser.getLastName();
+
+        log.info("Fetching leads from repository for ownerName: {}", ownerName);
+        List<Lead> byOwner = leadRepository.findByOwner(ownerName);
+
+        log.debug("Repository returned {} leads for ownerId {}", byOwner.size(), id);
+
+        return byOwner.stream()
+                .map(this::convertToResponseDto) // convert each Lead to LeadResponseDto
+                .collect(Collectors.toList());
+
+
+    }
+
+
+
     private void mapDtoToEntity(LeadRequestDto dto, Lead lead) {
         lead.setCompany(dto.getCompany());
         lead.setContactName(dto.getContactName());
@@ -115,60 +136,6 @@ public class LeadServiceImpl implements LeadService {
         return dto;
     }
 
-
-    @Override
-    public LeadSummaryDto getLeadSummary() {
-        List<LeadResponseDto> allLeads = getAllLeads();
-        Long totalLeads = (long) allLeads.size();
-
-        long convertedLeads = allLeads.stream()
-                .filter(lead -> lead.getStatus() == LeadStatus.WON)
-                .count();
-
-        Double conversionRate = (double) ((convertedLeads / totalLeads) * 100);
-
-
-        // build DTO
-        LeadSummaryDto summary = new LeadSummaryDto();
-        summary.setTotalLeads(totalLeads);
-        summary.setConvertedLeads(convertedLeads);
-        summary.setConversionRate(conversionRate);
-
-        return summary;
-    }
-
-    @Override
-    public List<LeadOwnerCountDto> getLeadsByOwner() {
-
-        List<LeadOwnerCountDto> leadsByOwner = leadRepository.getLeadsByOwner();
-        return leadsByOwner;
-
-    }
-
-    @Override
-    public List<LeadOwnerCountDto> getConvertedLeadsByOwner() {
-        return List.of();
-    }
-
-    @Override
-    public List<LeadSourceCountDto> getLeadsBySource() {
-        return List.of();
-    }
-
-    @Override
-    public List<LeadSourceCountDto> getConvertedLeadsBySource() {
-        return List.of();
-    }
-
-    @Override
-    public List<String> getLeadOwners() {
-        return List.of();
-    }
-
-    @Override
-    public List<LeadDto> getFilteredLeads(LocalDate createdFrom, LocalDate createdTo, String owner) {
-        return List.of();
-    }
 
 
 }
