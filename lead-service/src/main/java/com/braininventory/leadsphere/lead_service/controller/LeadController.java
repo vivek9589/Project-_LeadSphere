@@ -59,7 +59,7 @@ public class LeadController {
     }
 
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')") // Best practice for delete operations
+    @PreAuthorize("hasAnyAuthority('ROLE_SALES_USER', 'ROLE_ADMIN')")
     public ResponseEntity<StandardResponse<LeadResponseDto>> deleteLead(@PathVariable Long id) {
 
         LeadResponseDto data = leadService.deleteLeadById(id);
