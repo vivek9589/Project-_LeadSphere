@@ -48,6 +48,28 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+
+    //
+    @ExceptionHandler(DuplicateLeadException.class)
+    public ResponseEntity<StandardResponse<Object>> handleDuplicateLead(
+            DuplicateLeadException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                StandardResponse.error("Duplicate lead", ex.getMessage(), request.getRequestURI())
+        );
+    }
+
+
+    @ExceptionHandler(LeadCreationException.class)
+    public ResponseEntity<StandardResponse<Object>> handleLeadCreation(
+            LeadCreationException ex,
+            HttpServletRequest request) {
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                StandardResponse.error("Lead creation failed", ex.getMessage(), request.getRequestURI())
+        );
+    }
     // Handles Spring's MethodArgumentNotValidException (DTO level @Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<StandardResponse<Map<String, String>>> handleMethodArgumentNotValid(
@@ -66,5 +88,18 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<StandardResponse<Void>> handleConflict(ResourceConflictException ex, HttpServletRequest request) {
+        log.error("Conflict error at {}: {}", request.getRequestURI(), ex.getMessage());
+
+        StandardResponse<Void> response = StandardResponse.error(
+                ex.getMessage(),
+                "DUPLICATE_ENTRY",
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
 
 }

@@ -2,6 +2,8 @@ package com.braininventory.leadsphere.lead_service.service.impl;
 
 import com.braininventory.leadsphere.lead_service.dto.*;
 import com.braininventory.leadsphere.lead_service.entity.Lead;
+import com.braininventory.leadsphere.lead_service.exception.DuplicateLeadException;
+import com.braininventory.leadsphere.lead_service.exception.LeadCreationException;
 import com.braininventory.leadsphere.lead_service.exception.ResourceNotFoundException;
 import com.braininventory.leadsphere.lead_service.feign.UserClient;
 import com.braininventory.leadsphere.lead_service.repository.LeadRepository;
@@ -33,15 +35,40 @@ public class LeadServiceImpl implements LeadService {
 
 
     @Override
+    @Transactional
     public LeadResponseDto createLead(LeadRequestDto dto) {
-        Lead lead = new Lead();
-        mapDtoToEntity(dto, lead);
-        //return convertToResponseDto(leadRepository.save(lead));
+        log.info("Attempting to create lead with email={} and company={}", dto.getContactEmail(), dto.getCompany());
 
-        Lead savedLead = leadRepository.save(lead);
-        leadRepository.flush(); // ensure DB write
-        return convertToResponseDto(savedLead);
+        try {
+            boolean alreadyExist = leadRepository.existsByContactEmailAndCompany(
+                    dto.getContactEmail(), dto.getCompany());
+
+            if (alreadyExist) {
+                log.warn("Duplicate lead detected for email={} and company={}", dto.getContactEmail(), dto.getCompany());
+                throw new DuplicateLeadException(
+                        "Lead with email " + dto.getContactEmail() + " and company " + dto.getCompany() + " already exists"
+                );
+            }
+
+            Lead lead = new Lead();
+            mapDtoToEntity(dto, lead);
+
+            Lead savedLead = leadRepository.save(lead);
+            leadRepository.flush(); // ensure DB write
+
+            log.info("Lead successfully created with id={}", savedLead.getId());
+            return convertToResponseDto(savedLead);
+
+        } catch (DuplicateLeadException ex) {
+            // Custom business exception — rethrow for GlobalExceptionHandler
+            throw ex;
+        } catch (Exception ex) {
+            // Catch unexpected errors, log them, and wrap in a custom exception
+            log.error("Unexpected error occurred while creating lead: {}", ex.getMessage(), ex);
+            throw new LeadCreationException("Failed to create lead due to an unexpected error", ex);
+        }
     }
+
 
     @Override
     public LeadResponseDto getLeadById(Long id) {

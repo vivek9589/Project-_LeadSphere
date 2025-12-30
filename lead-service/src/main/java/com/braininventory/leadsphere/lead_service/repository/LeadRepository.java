@@ -18,9 +18,14 @@ import java.util.List;
 @Repository
 public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificationExecutor<Lead> {
 
-    // long findBystatus(LeadStatus status);
-    // Change findBystatus to countByStatus
+
+
+    // count by
     long countByStatus(LeadStatus status);
+
+    // query is existByCompanyNameAndCotactEmail
+    boolean existsByContactEmailAndCompany(String contactEmail, String company);
+
 
 
     List<Lead> findByOwner(String ownerName);
