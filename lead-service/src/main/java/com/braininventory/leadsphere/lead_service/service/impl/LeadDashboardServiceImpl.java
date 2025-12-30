@@ -63,6 +63,16 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
         }
     }
 
+    private LeadDashboardResponse createEmptyResponse() {
+        return LeadDashboardResponse.builder()
+                .leadStats(new LeadStatsDto(0, 0, 0))
+                .leadsByOwner(List.of())
+                .leadsBySource(List.of())
+                .convertedLeadsByOwner(List.of())
+                .convertedLeadsBySource(List.of())
+                .build();
+    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -71,7 +81,7 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
         Specification<Lead> spec = LeadSpecifications.getFilteredLeads(start, end, owner, null);
         List<Lead> allFilteredLeads = leadRepository.findAll(spec);
 
-        // 2. Calculate Stats from the list
+        // 2. Filter specific lists for stats
         int totalLeads = allFilteredLeads.size();
         List<Lead> wonLeads = allFilteredLeads.stream()
                 .filter(l -> l.getStatus() == LeadStatus.WON)
@@ -80,24 +90,31 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
         int convertedLeads = wonLeads.size();
         int conversionRate = (totalLeads == 0) ? 0 : (convertedLeads * 100) / totalLeads;
 
-        // 3. Helper to build charts (Eliminates the need for buggy Repository @Queries)
+        // 3. Overall Charts
         List<LeadOwnerCountDto> leadsByOwner = allFilteredLeads.stream()
                 .collect(Collectors.groupingBy(Lead::getOwner, Collectors.counting()))
                 .entrySet().stream()
-                .map(e -> new LeadOwnerCountDto(e.getKey(), (long) e.getValue().intValue()))
+                .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue()))
                 .toList();
 
         List<LeadSourceCountDto> leadsBySource = allFilteredLeads.stream()
                 .collect(Collectors.groupingBy(Lead::getSource, Collectors.counting()))
                 .entrySet().stream()
-                .map(e -> new LeadSourceCountDto(e.getKey(), (long) e.getValue().intValue(), getColorForSource(e.getKey())))
+                .map(e -> new LeadSourceCountDto(e.getKey(), e.getValue(), getColorForSource(e.getKey())))
                 .toList();
 
         // 4. Converted Charts (Only from WON leads)
         List<LeadOwnerCountDto> convByOwner = wonLeads.stream()
                 .collect(Collectors.groupingBy(Lead::getOwner, Collectors.counting()))
                 .entrySet().stream()
-                .map(e -> new LeadOwnerCountDto(e.getKey(), (long) e.getValue().intValue()))
+                .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue()))
+                .toList();
+
+        // Logic added here for Converted Leads by Source
+        List<LeadSourceCountDto> convBySource = wonLeads.stream()
+                .collect(Collectors.groupingBy(Lead::getSource, Collectors.counting()))
+                .entrySet().stream()
+                .map(e -> new LeadSourceCountDto(e.getKey(), e.getValue(), getColorForSource(e.getKey())))
                 .toList();
 
         return LeadDashboardResponse.builder()
@@ -105,30 +122,27 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
                 .leadsByOwner(leadsByOwner)
                 .leadsBySource(leadsBySource)
                 .convertedLeadsByOwner(convByOwner)
-                .convertedLeadsBySource(List.of()) // You can add source logic here too
+                .convertedLeadsBySource(convBySource) // Now fully implemented
                 .build();
     }
 
-    // Helper for UI colors
+
+
+    // Helper for UI colors - Modern SaaS Palette
     private String getColorForSource(String source) {
-        return switch (source.toLowerCase()) {
-            case "web" -> "#8B5CF6";
-            case "referral" -> "#6366F1";
-            case "phone" -> "#EC4899";
-            default -> "#9CA3AF";
+        if (source == null) return "#9CA3AF"; // Default Gray
+
+        return switch (source.toUpperCase()) {
+            case "WEB" -> "#8B5CF6";             // Soft Purple
+            case "REFERRAL" -> "#6366F1";        // Indigo
+            case "COMPANY_ENQUIRY" -> "#10B981"; // Emerald Green
+            case "UPWORK" -> "#65A30D";          // Lime/Olive (Upwork Brand)
+            case "LINKEDIN" -> "#0A66C2";        // LinkedIn Blue
+            case "PHONE" -> "#EC4899";           // Pink/Magenta
+            case "OTHER" -> "#6B7280";           // Neutral Slate
+            default -> "#9CA3AF";                // Medium Gray
         };
     }
-
-
-
-    private LeadDashboardResponse createEmptyResponse() {
-        return LeadDashboardResponse.builder()
-                .leadStats(new LeadStatsDto(0, 0, 0))
-                .leadsByOwner(Collections.emptyList())
-                .leadsBySource(Collections.emptyList())
-                .build();
-    }
-
 
 
 }
