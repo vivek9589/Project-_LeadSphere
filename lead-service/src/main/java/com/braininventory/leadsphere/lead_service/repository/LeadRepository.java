@@ -18,14 +18,19 @@ import java.util.List;
 @Repository
 public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificationExecutor<Lead> {
 
-    // long findBystatus(LeadStatus status);
-    // Change findBystatus to countByStatus
+
+
+    // count by
     long countByStatus(LeadStatus status);
 
     @Query("SELECT DISTINCT l.ownerId as ownerId, l.owner as ownerName " +
             "FROM Lead l " +
             "WHERE l.ownerId IS NOT NULL AND l.owner IS NOT NULL")
     List<OwnerFilterProjection> findAllUniqueOwners();
+    // query is existByCompanyNameAndCotactEmail
+    boolean existsByContactEmailAndCompany(String contactEmail, String company);
+
+
 
     List<Lead> findByOwner(String ownerName);
 

@@ -1,11 +1,9 @@
 package com.braininventory.leadsphere.user_service.exception;
 
-import com.braininventory.leadsphere.user_service.dto.ApiResponse;
 import com.braininventory.leadsphere.user_service.dto.StandardResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,80 +19,110 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    // Handles Missing Email / Empty Email
+    // 400 Bad Request → Custom invalid request
     @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<ApiResponse<Object>> handleInvalidRequest(InvalidRequestException ex) {
-        return ResponseEntity.status(400)
-                .body(new ApiResponse<>(400,  ex.getMessage()));
+    public ResponseEntity<StandardResponse<Object>> handleInvalidRequest(
+            InvalidRequestException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(
+                StandardResponse.error("Invalid request", ex.getMessage(), request.getRequestURI())
+        );
     }
 
-    // Handles Duplicate Email (Business Logic)
+    // 400 Bad Request → Duplicate invite (business logic)
     @ExceptionHandler(DuplicateInviteException.class)
-    public ResponseEntity<ApiResponse<Object>> handleDuplicate(DuplicateInviteException ex) {
-        return ResponseEntity.status(400)
-                .body(new ApiResponse<>(400,  ex.getMessage()));
+    public ResponseEntity<StandardResponse<Object>> handleDuplicate(
+            DuplicateInviteException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(
+                StandardResponse.error("Duplicate invite", ex.getMessage(), request.getRequestURI())
+        );
     }
 
-    /*
-    // Handles unexpected system crashes
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGeneral(Exception ex) {
-        return ResponseEntity.status(500)
-                .body(new ApiResponse<>(500, "Internal Server Error: " + ex.getMessage()));
-    }
-
-
-     */
-
-
+    // 400 Bad Request → Handler method validation errors
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleValidationErrors(HandlerMethodValidationException ex) {
-        // Get the first validation error message
+    public ResponseEntity<StandardResponse<Object>> handleHandlerValidation(
+            HandlerMethodValidationException ex,
+            HttpServletRequest request) {
         String errorMessage = ex.getAllErrors().get(0).getDefaultMessage();
-
-        return ResponseEntity.status(400)
-                .body(new ApiResponse<>(400, "Validation Error: " + errorMessage));
+        return ResponseEntity.badRequest().body(
+                StandardResponse.error("Validation error", errorMessage, request.getRequestURI())
+        );
     }
 
-
-    // 1. Handle when the parameter is missing from the request entirely
+    // 400 Bad Request → Missing request parameters
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiResponse<Object>> handleMissingParams(MissingServletRequestParameterException ex) {
-        return ResponseEntity.status(400)
-                .body(new ApiResponse<>(400, " Email required"));
+    public ResponseEntity<StandardResponse<Object>> handleMissingParams(
+            MissingServletRequestParameterException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(
+                StandardResponse.error("Missing parameter", ex.getParameterName() + " is required", request.getRequestURI())
+        );
     }
 
-
-    // Handles resource not found (e.g., Get User by ID fails)
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<StandardResponse<Void>> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
-        log.error("Resource not found: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(StandardResponse.error(ex.getMessage(), "NOT_FOUND", request.getRequestURI()));
-    }
-
-    // Handles validation errors (e.g., Edit User has invalid email)
+    // 400 Bad Request → Validation errors on DTO fields
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<StandardResponse<Map<String, String>>> handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ResponseEntity<StandardResponse<Object>> handleValidationErrors(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
+
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(StandardResponse.error("Validation failed", errors, request.getRequestURI()));
+        return ResponseEntity.badRequest().body(
+                StandardResponse.error("Validation failed", errors, request.getRequestURI())
+        );
     }
 
-    // Generic fallback for any other server errors
+    // 404 Not Found → Resource missing
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<StandardResponse<Object>> handleNotFound(
+            ResourceNotFoundException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                StandardResponse.error("Resource not found", ex.getMessage(), request.getRequestURI())
+        );
+    }
+
+    // 409 Conflict → Business rule violation
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<StandardResponse<Object>> handleConflict(
+            ConflictException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                StandardResponse.error("Conflict occurred", ex.getMessage(), request.getRequestURI())
+        );
+    }
+
+    // 401 Unauthorized → Authentication issues
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<StandardResponse<Object>> handleAuth(
+            AuthenticationException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                StandardResponse.error("Authentication failed", ex.getMessage(), request.getRequestURI())
+        );
+    }
+
+    // 403 Forbidden → Access denied
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<StandardResponse<Object>> handleForbidden(
+            AccessDeniedException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                StandardResponse.error("Access denied", ex.getMessage(), request.getRequestURI())
+        );
+    }
+
+    // 500 Internal Server Error → Fallback for unexpected issues
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<StandardResponse<Void>> handleGlobalException(
-            Exception ex, HttpServletRequest request) {
+    public ResponseEntity<StandardResponse<Object>> handleGenericException(
+            Exception ex,
+            HttpServletRequest request) {
         log.error("Internal Server Error: ", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR) // <-- FIXED
-                .body(StandardResponse.error(
-                        "An unexpected error occurred",
-                        "INTERNAL_ERROR",
-                        request.getRequestURI()
-                ));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                StandardResponse.error("Unexpected error occurred", ex.getMessage(), request.getRequestURI())
+        );
     }
-
 }

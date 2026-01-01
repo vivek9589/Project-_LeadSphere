@@ -10,7 +10,4 @@ public interface InviteService {
 
     void createInvite(InviteController.InviteRequest request);
 
-     // void acceptInvite(String token, UserRequestDto newUserRequest);
-
-    // InviteResponseDto getInviteStatus(Long id);
 }
