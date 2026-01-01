@@ -42,7 +42,7 @@ public class Lead {
     @Column(nullable = false)
     private String contactEmail;
 
-    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be between 10-15 digits")
+   // @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be between 10-15 digits")
     private String contactPhone;
 
     @NotBlank(message = "Opportunity name is required")

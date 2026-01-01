@@ -3,16 +3,20 @@ package com.braininventory.leadsphere.user_service.controller;
 import com.braininventory.leadsphere.user_service.dto.*;
 import com.braininventory.leadsphere.user_service.service.UserService;
 import com.braininventory.leadsphere.user_service.vo.LoginVO;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 
 @RestController // Ensure this is present
+@Slf4j
 @RequestMapping("/sales-user")
 public class UserController {
 
@@ -129,6 +133,22 @@ public class UserController {
                 StandardResponse.ok(deletedUser, "User with ID " + id + " has been deleted successfully")
         );
     }
+
+    // upload profile pic
+    @PostMapping("/profile/pic/{id}")
+    public ResponseEntity<StandardResponse<Void>> uploadAvatar(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
+
+        userService.updateAvatar(id, file);
+
+        return ResponseEntity.ok(
+                StandardResponse.ok(null, "Profile picture updated successfully")
+        );
+    }
+
+
 
 
 

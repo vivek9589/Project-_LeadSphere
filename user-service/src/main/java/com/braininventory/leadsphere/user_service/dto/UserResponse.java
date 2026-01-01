@@ -1,11 +1,9 @@
 package com.braininventory.leadsphere.user_service.dto;
 
 import com.braininventory.leadsphere.user_service.enums.Role;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -13,15 +11,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-    private String id; // This will map to your customId (e.g., admin_001)
+    private Long id; // This will map to your customId (e.g., admin_001)
     private String firstName;
     private String lastName;
     private String email;
+    //private String countryCode; // e.g., "+91"
     private String phone; // Maps from mobileNo
     private Role role;
 
     private String avatar;
-    private String bio;
+    private LocalDate dob;
     private Boolean isActive;
 
     private AddressDto address;

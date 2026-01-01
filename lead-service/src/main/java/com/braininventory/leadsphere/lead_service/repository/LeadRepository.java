@@ -30,7 +30,9 @@ public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificat
     // query is existByCompanyNameAndCotactEmail
     boolean existsByContactEmailAndCompany(String contactEmail, String company);
 
-
+    // Helper to resolve Name from ID
+    @Query("SELECT DISTINCT l.owner FROM Lead l WHERE l.ownerId = :ownerId")
+    String findOwnerNameById(@Param("ownerId") Long ownerId);
 
     List<Lead> findByOwner(String ownerName);
 
@@ -75,14 +77,6 @@ public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificat
     List<LeadSourceCountDto> getConvertedLeadsBySource(@Param("status") LeadStatus status);
 
 
-
-    /*   gemini code
-
-    @Query("SELECT new com.leadsphere.dto.LeadOwnerCountDto(l.owner, COUNT(l)) " +
-            "FROM Lead l WHERE l.createdAt BETWEEN :start AND :end GROUP BY l.owner")
-    List<LeadOwnerCountDto> getLeadsByOwnerFiltered(LocalDateTime start, LocalDateTime end);
-
-*/
 
 
 }

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class UserUpdateRequest {
 
@@ -17,10 +19,14 @@ public class UserUpdateRequest {
     @Size(max = 50, message = "Last name is too long")
     private String lastName;
 
-    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone format")
+
+    //private String countryCode; // e.g., "+91"
+
+    // @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone format")
     private String phone;
 
-    private String bio;
+    private LocalDate dob;
+
     private String avatar;
 
     @Enumerated(EnumType.STRING)
