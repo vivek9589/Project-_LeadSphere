@@ -28,4 +28,5 @@ public class LeadRequestDto {
     private LeadStatus status;
     private String source;
     private String owner;
+    private Long ownerId; // Received from the frontend selection
 }

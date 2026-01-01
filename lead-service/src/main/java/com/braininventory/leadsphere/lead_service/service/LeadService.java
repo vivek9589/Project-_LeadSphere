@@ -1,6 +1,7 @@
 package com.braininventory.leadsphere.lead_service.service;
 
 import com.braininventory.leadsphere.lead_service.dto.*;
+import com.braininventory.leadsphere.lead_service.repository.projections.OwnerFilterProjection;
 
 import java.util.List;
 
@@ -20,6 +21,8 @@ public interface LeadService {
 
 
     List<LeadResponseDto> getLeadsByOwnerId(Long id);
+
+    List<OwnerFilterProjection> getOwnerFilterList();
 
 
 

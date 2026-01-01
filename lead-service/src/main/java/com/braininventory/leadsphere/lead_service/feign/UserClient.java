@@ -32,4 +32,7 @@ public interface UserClient {
     // The full path will be http://USER-SERVICE/sales-user/getById/{id}
     @GetMapping("/sales-user/getById/{id}")
     UserResponseDto getSalesUserById(@PathVariable("id") Long id);
+
+
+
 }

@@ -18,6 +18,7 @@ public class LeadResponseDto {
     private Double value;
     private LeadStatus status;
     private String source;
+    private Long ownerId;
     private String owner;
     private LocalDateTime  createdAt;
     private LocalDateTime updatedAt;

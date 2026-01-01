@@ -1,6 +1,7 @@
 package com.braininventory.leadsphere.lead_service.controller;
 
 import com.braininventory.leadsphere.lead_service.dto.*;
+import com.braininventory.leadsphere.lead_service.repository.projections.OwnerFilterProjection;
 import com.braininventory.leadsphere.lead_service.service.LeadDashboardService;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -85,6 +86,20 @@ public class LeadController {
         response.setPath(request.getRequestURI());
 
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/owners")
+    public ResponseEntity<StandardResponse<List<OwnerFilterProjection>>> getUniqueOwners(HttpServletRequest request) {
+        log.info("Request received to fetch unique lead owners for filters");
+
+        List<OwnerFilterProjection> owners = leadService.getOwnerFilterList();
+
+        log.info("Successfully retrieved {} unique owners", owners.size());
+
+        return ResponseEntity.ok(
+                StandardResponse.ok(owners, "Owner filters retrieved successfully")
+        );
     }
 
 
