@@ -56,4 +56,19 @@ public class LeadSourceController {
                 HttpStatus.CREATED
         );
     }
+
+
+    @GetMapping("/source/suggest")
+    public ResponseEntity<StandardResponse<List<LeadSource>>> getSuggestions(
+            @RequestParam(value = "q", required = false) String query,
+            HttpServletRequest request) {
+
+        log.info("Suggestion request received for source: {}", query);
+
+        List<LeadSource> suggestions = leadSourceService.getSourceSuggestions(query);
+
+        return ResponseEntity.ok(
+                StandardResponse.ok(suggestions, "Lead sources retrieved successfully")
+        );
+    }
 }

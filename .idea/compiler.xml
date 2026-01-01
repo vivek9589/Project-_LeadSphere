@@ -20,7 +20,7 @@
         <module name="eureka-server" />
         <module name="auth-service" />
       </profile>
-      <profile name="Annotation profile for analytics-service" enabled="true">
+      <profile name="Annotation profile for User Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

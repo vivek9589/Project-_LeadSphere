@@ -7,4 +7,6 @@ import java.util.List;
 public interface LeadSourceService {
     List<LeadSource> getAllActiveSources();
     LeadSource addSource(String name);
+
+    List<LeadSource> getSourceSuggestions(String query);
 }

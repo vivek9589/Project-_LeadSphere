@@ -6,6 +6,7 @@ import com.braininventory.leadsphere.user_service.entity.SocialLinks;
 import com.braininventory.leadsphere.user_service.entity.User;
 import com.braininventory.leadsphere.user_service.enums.Permission;
 import com.braininventory.leadsphere.user_service.enums.Role;
+import com.braininventory.leadsphere.user_service.exception.FileStorageException;
 import com.braininventory.leadsphere.user_service.exception.ResourceNotFoundException;
 import com.braininventory.leadsphere.user_service.repository.UserRepository;
 import com.braininventory.leadsphere.user_service.service.MailService;
@@ -13,13 +14,18 @@ import com.braininventory.leadsphere.user_service.service.UserService;
 import com.braininventory.leadsphere.user_service.vo.LoginVO;
 import com.braininventory.leadsphere.user_service.entity.Address;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,6 +42,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private Cloudinary cloudinary;
+
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository) {
@@ -160,7 +170,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserDetails(Long id) {
+    public UserResponse     getUserDetails(Long id) {
         log.info("Fetching user details for: {}", id);
 
         User user = userRepository.findById(id)
@@ -258,8 +268,33 @@ public class UserServiceImpl implements UserService {
         return userRepository.countByIsActiveTrueAndRole(Role.SALES_USER);
     }
 
+    @Override
+    public UserResponse updateAvatar(Long id, MultipartFile file) {
+        log.info("Uploading avatar for user ID: {}", id);
 
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 
+        try {
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap("folder", "avatars"));
+
+            String url = (String) uploadResult.get("secure_url");
+            user.setAvatar(url);
+            userRepository.save(user);
+
+            log.info("Successfully uploaded avatar for user ID: {}", id);
+
+            return UserResponse.builder()
+                    .id(user.getId())
+                    .avatar(user.getAvatar())
+                    .build();
+
+        } catch (IOException e) {
+            log.error("Failed to upload avatar for user ID: {}", id, e);
+            throw new FileStorageException("Could not upload file to Cloudinary", e);
+        }
+    }
 
 
 

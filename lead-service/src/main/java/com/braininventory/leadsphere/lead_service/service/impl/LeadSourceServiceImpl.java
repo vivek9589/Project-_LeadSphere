@@ -44,4 +44,18 @@ public class LeadSourceServiceImpl implements LeadSourceService {
         log.info("Successfully created new Lead Source: {}", normalizedName);
         return repository.save(newSource);
     }
+
+    @Override
+    public List<LeadSource> getSourceSuggestions(String query) {
+        log.info("Searching for active sources matching query: {}", query);
+
+        // If query is empty, return all active sources
+        if (query == null || query.trim().isEmpty()) {
+            log.debug("Empty query, returning all active sources.");
+            return repository.findByActiveTrue();
+        }
+
+        // Return filtered active sources
+        return repository.suggestSources(query);
+    }
 }

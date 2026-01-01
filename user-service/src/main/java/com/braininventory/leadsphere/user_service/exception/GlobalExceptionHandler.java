@@ -115,6 +115,14 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<StandardResponse<Object>> handleFileStorage(FileStorageException ex, HttpServletRequest request) {
+        log.error("File storage error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(StandardResponse.error(ex.getMessage(), null, request.getRequestURI()));
+    }
+
+
     // 500 Internal Server Error → Fallback for unexpected issues
     @ExceptionHandler(Exception.class)
     public ResponseEntity<StandardResponse<Object>> handleGenericException(

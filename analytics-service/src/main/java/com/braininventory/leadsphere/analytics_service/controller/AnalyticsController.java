@@ -16,7 +16,7 @@ public class AnalyticsController {
 
     @GetMapping("/admin/dashboard")
     public ResponseEntity<StandardResponse<LeadDashboardResponse>> getAdminDashboard(
-            @RequestParam(defaultValue = "this_month") String range,
+            @RequestParam(defaultValue = "total") String range,
             @RequestParam(required = false) String ownerName) {
 
         LeadDashboardResponse data = analyticsService.getDashboard(range, ownerName, true);

@@ -111,6 +111,7 @@ public class LeadController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             @RequestParam(required = false) String owner) {
 
+        log.info("Internal stats requested for owner: {} between {} and {}", owner, start, end);
         return ResponseEntity.ok(StandardResponse.ok(
                 leadDashboardService.getFilteredDashboard(start, end, owner),
                 "Data fetched successfully"));
