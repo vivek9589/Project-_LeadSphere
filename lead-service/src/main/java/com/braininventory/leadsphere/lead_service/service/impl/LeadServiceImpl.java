@@ -5,6 +5,7 @@ import com.braininventory.leadsphere.lead_service.entity.Lead;
 import com.braininventory.leadsphere.lead_service.exception.ResourceNotFoundException;
 import com.braininventory.leadsphere.lead_service.feign.UserClient;
 import com.braininventory.leadsphere.lead_service.repository.LeadRepository;
+import com.braininventory.leadsphere.lead_service.repository.projections.OwnerFilterProjection;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -105,7 +106,18 @@ public class LeadServiceImpl implements LeadService {
 
     }
 
+    @Override
+    public List<OwnerFilterProjection> getOwnerFilterList() {
+        log.debug("Executing query to find distinct owner names and IDs from leads table");
 
+        List<OwnerFilterProjection> owners = leadRepository.findAllUniqueOwners();
+
+        if (owners.isEmpty()) {
+            log.warn("No lead owners found in the database.");
+        }
+
+        return owners;
+    }
 
     private void mapDtoToEntity(LeadRequestDto dto, Lead lead) {
         lead.setCompany(dto.getCompany());
@@ -117,6 +129,7 @@ public class LeadServiceImpl implements LeadService {
         lead.setStatus(dto.getStatus());
         lead.setSource(dto.getSource());
         lead.setOwner(dto.getOwner());
+        lead.setOwnerId(dto.getOwnerId());
     }
 
     private LeadResponseDto convertToResponseDto(Lead lead) {
@@ -130,6 +143,7 @@ public class LeadServiceImpl implements LeadService {
         dto.setValue(lead.getValue());
         dto.setStatus(lead.getStatus());
         dto.setSource(lead.getSource());
+        dto.setOwnerId(lead.getOwnerId());
         dto.setOwner(lead.getOwner());
         dto.setCreatedAt(lead.getCreatedAt());
         dto.setUpdatedAt(lead.getUpdatedAt());

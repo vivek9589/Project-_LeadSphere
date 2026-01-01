@@ -172,7 +172,6 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    @Transactional
     public UserResponse editUser(Long id, UserUpdateRequest updateRequest) {
         log.info("Updating user with ID: {}", id);
 

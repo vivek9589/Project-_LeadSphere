@@ -13,6 +13,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+
+
+
 @Entity
 @Table(name = "leads")
 @Data
@@ -56,6 +59,9 @@ public class Lead {
 
     //@NotBlank(message = "Lead owner is required")
     private String owner; // Linked to assigned person
+
+    @Column(name = "owner_id")
+    private Long ownerId;
 
    @CreationTimestamp
     @Column(updatable = false, nullable = false)

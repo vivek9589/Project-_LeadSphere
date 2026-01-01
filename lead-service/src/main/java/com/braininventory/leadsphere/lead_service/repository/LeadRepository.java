@@ -5,13 +5,13 @@ import com.braininventory.leadsphere.lead_service.dto.LeadResponseDto;
 import com.braininventory.leadsphere.lead_service.dto.LeadSourceCountDto;
 import com.braininventory.leadsphere.lead_service.entity.Lead;
 import com.braininventory.leadsphere.lead_service.enums.LeadStatus;
+import com.braininventory.leadsphere.lead_service.repository.projections.OwnerFilterProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -22,8 +22,16 @@ public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificat
     // Change findBystatus to countByStatus
     long countByStatus(LeadStatus status);
 
+    @Query("SELECT DISTINCT l.ownerId as ownerId, l.owner as ownerName " +
+            "FROM Lead l " +
+            "WHERE l.ownerId IS NOT NULL AND l.owner IS NOT NULL")
+    List<OwnerFilterProjection> findAllUniqueOwners();
 
     List<Lead> findByOwner(String ownerName);
+
+    // getalll owner
+    @Query("SELECT DISTINCT l.owner FROM Lead l")
+    List<String> findAllOwners();
 
 
 
