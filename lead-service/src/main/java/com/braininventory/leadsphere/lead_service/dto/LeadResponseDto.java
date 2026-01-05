@@ -14,6 +14,7 @@ public class LeadResponseDto {
     private String contactName;
     private String contactEmail;
     private String contactPhone;
+    private String countryCode;
     private String opportunityName;
     private Double value;
     private LeadStatus status;

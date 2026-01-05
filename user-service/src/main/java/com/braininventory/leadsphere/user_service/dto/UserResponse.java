@@ -15,7 +15,7 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private String email;
-    //private String countryCode; // e.g., "+91"
+    private String countryCode; // e.g., "+91"
     private String phone; // Maps from mobileNo
     private Role role;
 

@@ -20,7 +20,7 @@ public class UserUpdateRequest {
     private String lastName;
 
 
-    //private String countryCode; // e.g., "+91"
+    private String countryCode; // e.g., "+91"
 
     // @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone format")
     private String phone;

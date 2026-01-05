@@ -12,20 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LeadSpecifications {
-    public static Specification<Lead> getFilteredLeads(LocalDate start, LocalDate end, String owner, LeadStatus status) {
+    public static Specification<Lead> getFilteredLeads(LocalDate start, LocalDate end, String ownerName, Long ownerId) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-
-            if (start != null && end != null) {
-                predicates.add(cb.between(root.get("createdAt"), start.atStartOfDay(), end.atTime(23, 59, 59)));
-            }
-            if (owner != null && !owner.isEmpty()) {
-                predicates.add(cb.equal(root.get("owner"), owner));
-            }
-            if (status != null) {
-                predicates.add(cb.equal(root.get("status"), status));
-            }
+            if (start != null) predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), start.atStartOfDay()));
+            if (end != null) predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), end.atTime(23, 59, 59)));
+            if (ownerId != null) predicates.add(cb.equal(root.get("ownerId"), ownerId));
+            else if (ownerName != null) predicates.add(cb.equal(root.get("owner"), ownerName));
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }
+

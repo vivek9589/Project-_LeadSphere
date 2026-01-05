@@ -45,6 +45,8 @@ public class Lead {
    // @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be between 10-15 digits")
     private String contactPhone;
 
+    private String countryCode;
+
     @NotBlank(message = "Opportunity name is required")
     private String opportunityName;
 
@@ -70,4 +72,6 @@ public class Lead {
    @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime  updatedAt;
+
+    private LocalDateTime actualCloseDate;
 }

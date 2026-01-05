@@ -2,6 +2,7 @@ package com.braininventory.leadsphere.lead_service.service.impl;
 
 import com.braininventory.leadsphere.lead_service.dto.*;
 import com.braininventory.leadsphere.lead_service.entity.Lead;
+import com.braininventory.leadsphere.lead_service.enums.LeadStatus;
 import com.braininventory.leadsphere.lead_service.exception.DuplicateLeadException;
 import com.braininventory.leadsphere.lead_service.exception.LeadCreationException;
 import com.braininventory.leadsphere.lead_service.exception.ResourceNotFoundException;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,12 +92,19 @@ public class LeadServiceImpl implements LeadService {
     public LeadResponseDto updateLead(Long id, LeadRequestDto dto) {
         log.info("Updating Lead with ID: {}", id);
 
-        // Use custom exception for the Global Handler to catch
         Lead lead = leadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lead not found with id: " + id));
 
-        // ModelMapper maps only non-null fields if configured correctly
+        // 1. Capture the status before mapping
+        LeadStatus oldStatus = lead.getStatus();
+
+        // 2. Map fields from DTO to Lead entity
         modelMapper.map(dto, lead);
+
+        // 3. Logic: If status changed TO 'WON', set the timestamp
+        if (lead.getStatus() == LeadStatus.WON && oldStatus != LeadStatus.WON) {
+            lead.setActualCloseDate(LocalDateTime.now());
+        }
 
         Lead savedLead = leadRepository.save(lead);
         return modelMapper.map(savedLead, LeadResponseDto.class);
@@ -151,6 +160,7 @@ public class LeadServiceImpl implements LeadService {
         lead.setContactName(dto.getContactName());
         lead.setContactEmail(dto.getContactEmail());
         lead.setContactPhone(dto.getContactPhone());
+        lead.setCountryCode(dto.getCountryCode());
         lead.setOpportunityName(dto.getOpportunityName());
         lead.setValue(dto.getValue());
         lead.setStatus(dto.getStatus());
@@ -166,6 +176,7 @@ public class LeadServiceImpl implements LeadService {
         dto.setContactName(lead.getContactName());
         dto.setContactEmail(lead.getContactEmail());
         dto.setContactPhone(lead.getContactPhone());
+        dto.setCountryCode(lead.getCountryCode());
         dto.setOpportunityName(lead.getOpportunityName());
         dto.setValue(lead.getValue());
         dto.setStatus(lead.getStatus());

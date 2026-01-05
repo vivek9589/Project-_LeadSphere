@@ -1,15 +1,14 @@
 package com.braininventory.leadsphere.analytics_service.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class LeadOwnerCountDto {
     private String owner;
     private Long count;
-
-    // Must be public for JPQL constructor expression
-    public LeadOwnerCountDto(String owner, Long count) {
-        this.owner = owner;
-        this.count = count;
-    }
+    private String color;
 }

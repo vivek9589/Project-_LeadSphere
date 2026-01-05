@@ -2,6 +2,7 @@ package com.braininventory.leadsphere.analytics_service.controller;
 
 import com.braininventory.leadsphere.analytics_service.dto.LeadDashboardResponse;
 import com.braininventory.leadsphere.analytics_service.dto.StandardResponse;
+import com.braininventory.leadsphere.analytics_service.dto.UserPerformanceDashboardResponseDTO;
 import com.braininventory.leadsphere.analytics_service.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,19 @@ public class AnalyticsController {
 
         LeadDashboardResponse data = analyticsService.getDashboard(range, null, false);
         return ResponseEntity.ok(StandardResponse.ok(data, "User dashboard data retrieved"));
+    }
+
+
+    // user dashboard as new requirement
+    @GetMapping("/sales-user/dashboard/{userId}")
+    public ResponseEntity<StandardResponse<UserPerformanceDashboardResponseDTO>> getUserDashboard(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "total") String range) {
+
+        UserPerformanceDashboardResponseDTO data = analyticsService.getUserDashboard(range, userId);
+
+        return ResponseEntity.ok(
+                StandardResponse.ok(data, "User performance metrics for " + range + " retrieved successfully")
+        );
     }
 }

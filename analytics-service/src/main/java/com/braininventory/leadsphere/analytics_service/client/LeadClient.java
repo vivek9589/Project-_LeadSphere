@@ -2,6 +2,7 @@ package com.braininventory.leadsphere.analytics_service.client;
 
 import com.braininventory.leadsphere.analytics_service.dto.LeadDashboardResponse;
 import com.braininventory.leadsphere.analytics_service.dto.StandardResponse;
+import com.braininventory.leadsphere.analytics_service.dto.UserPerformanceDashboardResponseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,5 +18,15 @@ public interface LeadClient {
             @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
             @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
             @RequestParam(value = "owner", required = false) String owner
+    );
+
+
+    // NEW API: Dedicated for User Dashboard using ID
+    // New API for User Dashboard
+    @GetMapping("/lead/internal/user-performance")
+    StandardResponse<UserPerformanceDashboardResponseDTO> getUserPerformanceStats(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam("ownerId") Long ownerId
     );
 }
