@@ -19,6 +19,7 @@ public class LeadRequestDto {
 
     // @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone")
     private String contactPhone;
+    private String countryCode;
 
     private String opportunityName;
 

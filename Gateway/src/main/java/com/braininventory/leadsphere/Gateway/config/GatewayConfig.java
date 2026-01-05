@@ -30,7 +30,8 @@ import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFi
             config.setAllowedOrigins(List.of(
                     "http://localhost:5173",
                     "http://localhost:3000",
-                    "http://192.168.29.198:5173" // Your frontend IP address
+                    "http://192.168.29.198:5173",
+                    "https://vtth3ds4-5173.inc1.devtunnels.ms"
             ));
 
             config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

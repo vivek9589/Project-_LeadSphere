@@ -2,6 +2,8 @@ package com.braininventory.leadsphere.analytics_service.service.impl;
 
 import com.braininventory.leadsphere.analytics_service.client.LeadClient;
 import com.braininventory.leadsphere.analytics_service.dto.LeadDashboardResponse;
+import com.braininventory.leadsphere.analytics_service.dto.StandardResponse;
+import com.braininventory.leadsphere.analytics_service.dto.UserPerformanceDashboardResponseDTO;
 import com.braininventory.leadsphere.analytics_service.service.AnalyticsService;
 import com.braininventory.leadsphere.analytics_service.service.DateRangeCalculator;
 import lombok.RequiredArgsConstructor;
@@ -46,4 +48,31 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             throw new RuntimeException("Lead Service is currently unreachable");
         }
     }
+
+    // user dashboard as new requirement
+
+    @Override
+    public UserPerformanceDashboardResponseDTO getUserDashboard(String range, Long userId) {
+        log.info("Orchestrating User Performance Dashboard. ID: {}, Range: {}", userId, range);
+
+        // 1. Resolve Time Range (Today, Week, Month, Year, Total)
+        LocalDate startDate = dateCalculator.getStartDate(range);
+        LocalDate endDate = LocalDate.now();
+
+        // 2. Fetch Consolidated Data via Feign
+        try {
+            StandardResponse<UserPerformanceDashboardResponseDTO> response =
+                    leadClient.getUserPerformanceStats(startDate, endDate, userId);
+
+            return response.getData();
+        } catch (Exception e) {
+            log.error("Communication failure with Lead Service for User {}: {}", userId, e.getMessage());
+            throw new RuntimeException("Lead Service unreachable for User Dashboard");
+        }
+    }
+
+
+
+
+
 }

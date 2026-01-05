@@ -27,6 +27,8 @@ public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificat
             "FROM Lead l " +
             "WHERE l.ownerId IS NOT NULL AND l.owner IS NOT NULL")
     List<OwnerFilterProjection> findAllUniqueOwners();
+
+
     // query is existByCompanyNameAndCotactEmail
     boolean existsByContactEmailAndCompany(String contactEmail, String company);
 
@@ -40,6 +42,17 @@ public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificat
     @Query("SELECT DISTINCT l.owner FROM Lead l")
     List<String> findAllOwners();
 
+
+    // Sum WON deals (Value) for the current user and month
+    @Query("SELECT SUM(l.value) FROM Lead l WHERE l.ownerId = :userId " +
+            "AND l.status = 'WON' AND MONTH(l.actualCloseDate) = :m AND YEAR(l.actualCloseDate) = 2026")
+    Double sumWonValueById(Long userId, int m);
+
+    // Sum Forecast/Pipeline (Value) for the current user and month
+    @Query("SELECT SUM(l.value) FROM Lead l WHERE l.ownerId = :userId " +
+            "AND l.status NOT IN ('WON', 'LOST', 'REJECTED') " +
+            "AND MONTH(l.createdAt) = :m AND YEAR(l.createdAt) = 2026")
+    Double sumPipelineValueById(Long userId, int m);
 
 
     @Query("SELECT new com.braininventory.leadsphere.lead_service.dto.LeadOwnerCountDto(l.owner, COUNT(l)) " +

@@ -1,9 +1,6 @@
 package com.braininventory.leadsphere.lead_service.service.impl;
 
-import com.braininventory.leadsphere.lead_service.dto.LeadDashboardResponse;
-import com.braininventory.leadsphere.lead_service.dto.LeadOwnerCountDto;
-import com.braininventory.leadsphere.lead_service.dto.LeadSourceCountDto;
-import com.braininventory.leadsphere.lead_service.dto.LeadStatsDto;
+import com.braininventory.leadsphere.lead_service.dto.*;
 import com.braininventory.leadsphere.lead_service.entity.Lead;
 import com.braininventory.leadsphere.lead_service.enums.LeadStatus;
 import com.braininventory.leadsphere.lead_service.exception.DashboardException;
@@ -11,6 +8,7 @@ import com.braininventory.leadsphere.lead_service.repository.LeadRepository;
 import com.braininventory.leadsphere.lead_service.repository.LeadSpecifications;
 import com.braininventory.leadsphere.lead_service.service.LeadDashboardService;
 import com.braininventory.leadsphere.lead_service.service.LeadService;
+import com.braininventory.leadsphere.lead_service.service.SalesAnalyticsService;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +22,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class LeadDashboardServiceImpl implements LeadDashboardService {
 
     private final LeadRepository leadRepository;
+    private final SalesAnalyticsService salesAnalyticsService;
 
     @Override
     @Transactional(readOnly = true)
@@ -72,16 +75,12 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
                 .convertedLeadsBySource(List.of())
                 .build();
     }
-
-
     @Override
     @Transactional(readOnly = true)
     public LeadDashboardResponse getFilteredDashboard(LocalDate start, LocalDate end, String owner) {
-        // 1. Single Source of Truth: Fetch ALL filtered leads once
         Specification<Lead> spec = LeadSpecifications.getFilteredLeads(start, end, owner, null);
         List<Lead> allFilteredLeads = leadRepository.findAll(spec);
 
-        // 2. Filter specific lists for stats
         int totalLeads = allFilteredLeads.size();
         List<Lead> wonLeads = allFilteredLeads.stream()
                 .filter(l -> l.getStatus() == LeadStatus.WON)
@@ -90,29 +89,28 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
         int convertedLeads = wonLeads.size();
         int conversionRate = (totalLeads == 0) ? 0 : (convertedLeads * 100) / totalLeads;
 
-        // 3. Overall Charts
+        // 1. Overall Charts
         List<LeadOwnerCountDto> leadsByOwner = allFilteredLeads.stream()
-                .collect(Collectors.groupingBy(Lead::getOwner, Collectors.counting()))
+                .collect(Collectors.groupingBy(l -> l.getOwner() != null ? l.getOwner() : "Unknown", Collectors.counting()))
                 .entrySet().stream()
-                .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue()))
+                .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue(), getColorForOwner(e.getKey())))
                 .toList();
 
         List<LeadSourceCountDto> leadsBySource = allFilteredLeads.stream()
-                .collect(Collectors.groupingBy(Lead::getSource, Collectors.counting()))
+                .collect(Collectors.groupingBy(l -> l.getSource() != null ? l.getSource() : "Other", Collectors.counting()))
                 .entrySet().stream()
                 .map(e -> new LeadSourceCountDto(e.getKey(), e.getValue(), getColorForSource(e.getKey())))
                 .toList();
 
-        // 4. Converted Charts (Only from WON leads)
+        // 2. Converted Charts
         List<LeadOwnerCountDto> convByOwner = wonLeads.stream()
-                .collect(Collectors.groupingBy(Lead::getOwner, Collectors.counting()))
+                .collect(Collectors.groupingBy(l -> l.getOwner() != null ? l.getOwner() : "Unknown", Collectors.counting()))
                 .entrySet().stream()
-                .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue()))
+                .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue(), getColorForOwner(e.getKey())))
                 .toList();
 
-        // Logic added here for Converted Leads by Source
         List<LeadSourceCountDto> convBySource = wonLeads.stream()
-                .collect(Collectors.groupingBy(Lead::getSource, Collectors.counting()))
+                .collect(Collectors.groupingBy(l -> l.getSource() != null ? l.getSource() : "Other", Collectors.counting()))
                 .entrySet().stream()
                 .map(e -> new LeadSourceCountDto(e.getKey(), e.getValue(), getColorForSource(e.getKey())))
                 .toList();
@@ -122,26 +120,30 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
                 .leadsByOwner(leadsByOwner)
                 .leadsBySource(leadsBySource)
                 .convertedLeadsByOwner(convByOwner)
-                .convertedLeadsBySource(convBySource) // Now fully implemented
+                .convertedLeadsBySource(convBySource)
                 .build();
     }
 
-
-
-    // Helper for UI colors - Modern SaaS Palette
     private String getColorForSource(String source) {
-        if (source == null) return "#9CA3AF"; // Default Gray
-
+        if (source == null) return "#9CA3AF";
         return switch (source.toUpperCase()) {
-            case "WEB" -> "#8B5CF6";             // Soft Purple
-            case "REFERRAL" -> "#6366F1";        // Indigo
-            case "COMPANY_ENQUIRY" -> "#10B981"; // Emerald Green
-            case "UPWORK" -> "#65A30D";          // Lime/Olive (Upwork Brand)
-            case "LINKEDIN" -> "#0A66C2";        // LinkedIn Blue
-            case "PHONE" -> "#EC4899";           // Pink/Magenta
-            case "OTHER" -> "#6B7280";           // Neutral Slate
-            default -> "#9CA3AF";                // Medium Gray
+            case "WEB" -> "#E33714";
+            case "REFERRAL" -> "#E38D14";
+            case "COMPANY_ENQUIRY" -> "#C4E314";
+            case "UPWORK" -> "#2CE314";
+            case "LINKEDIN" -> "#14E3CB";
+            case "PHONE" -> "#148DE3";
+            case "PARTNER" -> "#2214E3";
+            case "OTHER" -> "#E3146A";
+            default -> "#E31437";
         };
+    }
+
+    private String getColorForOwner(String ownerName) {
+        if (ownerName == null) return "#9CA3AF";
+        String[] palette = {"#E33714", "#E38D14", "#C4E314", "#2CE314", "#14E3CB", "#148DE3", "#2214E3", "#E3146A", "#E31437"};
+        int index = Math.abs(ownerName.hashCode()) % palette.length;
+        return palette[index];
     }
 
 
