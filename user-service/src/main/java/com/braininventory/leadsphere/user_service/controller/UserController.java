@@ -3,10 +3,12 @@ package com.braininventory.leadsphere.user_service.controller;
 import com.braininventory.leadsphere.user_service.dto.*;
 import com.braininventory.leadsphere.user_service.service.UserService;
 import com.braininventory.leadsphere.user_service.vo.LoginVO;
+import com.braininventory.leadsphere.user_service.vo.UserSummaryVo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -78,11 +80,16 @@ public class UserController {
 
     @GetMapping("/getBy/{email}")
     @PreAuthorize("permitAll()")
-    public LoginVO getUserByEmail(@PathVariable String email) {
-        return userService.findByEmail(email);
+    public ResponseEntity<LoginVO> getUserByEmail(@PathVariable String email) {
+        LoginVO loginVO = userService.findByEmail(email);
+
+        if (loginVO == null) {
+            // This triggers the FeignException.NotFound in your Auth Service
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(loginVO);
     }
-
-
 
     @PutMapping("/{id}/password")
     @PreAuthorize("permitAll()")
@@ -134,6 +141,16 @@ public class UserController {
         );
     }
 
+
+    @GetMapping("/active")
+    public ResponseEntity<StandardResponse<List<UserSummaryVo>>> getActiveSalesUserSummaries() {
+        List<UserSummaryVo> summaries = userService.getActiveSalesUserSummaries();
+
+        return ResponseEntity.ok(
+                StandardResponse.ok(summaries, "Active sales user summaries retrieved successfully")
+        );
+    }
+
     // upload profile pic
     @PostMapping("/profile/pic/{id}")
     public ResponseEntity<StandardResponse<Void>> uploadAvatar(
@@ -147,10 +164,5 @@ public class UserController {
                 StandardResponse.ok(null, "Profile picture updated successfully")
         );
     }
-
-
-
-
-
 
 }

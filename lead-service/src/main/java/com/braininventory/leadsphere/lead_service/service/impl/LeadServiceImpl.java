@@ -155,6 +155,41 @@ public class LeadServiceImpl implements LeadService {
         return owners;
     }
 
+//    @Override
+//    public List<LeadResponseDto> searchLeadsByFilter(String contactName, String contactEmail, String company, String opportunityName) {
+//        List<Lead> results;
+//
+//        if (contactName != null && !contactName.isEmpty()) {
+//            results = leadRepository.findByContactNameContainingIgnoreCase(contactName);
+//        } else if (contactEmail != null && !contactEmail.isEmpty()) {
+//            results = leadRepository.findByContactEmailContainingIgnoreCase(contactEmail);
+//        } else if (company != null && !company.isEmpty()) {
+//            results = leadRepository.findByCompanyContainingIgnoreCase(company);
+//        } else if (opportunityName != null && !opportunityName.isEmpty()) {
+//            results = leadRepository.findByOpportunityNameContainingIgnoreCase(opportunityName);
+//        } else {
+//            // Default: return empty list or all leads if no filter is provided
+//            results = leadRepository.findAll();
+//        }
+//
+//        return results.stream()
+//                .map(this::convertToResponseDto)
+//                .collect(Collectors.toList());
+//    }
+
+    @Override
+    public List<LeadResponseDto> searchLeads(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return leadRepository.findAll().stream()
+                    .map(this::convertToResponseDto)
+                    .collect(Collectors.toList());
+        }
+
+        return leadRepository.searchLeadsByGlobalCriteria(query.trim()).stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
     private void mapDtoToEntity(LeadRequestDto dto, Lead lead) {
         lead.setCompany(dto.getCompany());
         lead.setContactName(dto.getContactName());

@@ -91,5 +91,19 @@ public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificat
 
 
 
+    // filter's queries
+//    List<Lead> findByContactNameContainingIgnoreCase(String contactName);
+//    List<Lead> findByContactEmailContainingIgnoreCase(String contactEmail);
+//    List<Lead> findByCompanyContainingIgnoreCase(String company);
+//    List<Lead> findByOpportunityNameContainingIgnoreCase(String opportunityName);
+
+
+    // search by contactName contactEmail company opportunityName
+    @Query("SELECT l FROM Lead l WHERE " +
+            "LOWER(l.contactName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(l.contactEmail) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(l.company) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(l.opportunityName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
+    List<Lead> searchLeadsByGlobalCriteria(@Param("searchTerm") String searchTerm);
 
 }

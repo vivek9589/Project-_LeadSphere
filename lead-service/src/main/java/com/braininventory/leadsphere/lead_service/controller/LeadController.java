@@ -70,19 +70,16 @@ public class LeadController {
     @GetMapping("/getleadByOwner/{id}")
     public ResponseEntity<StandardResponse<List<LeadResponseDto>>> getLeadsByOwnerId(
             @PathVariable Long id, HttpServletRequest request) {
+        log.info("Request received to fetch leads for ownerId: {}", id);
 
-        log.info("Fetching leads for ownerId: {}", id);
+        // Fetch the leads - logic now returns empty list instead of throwing exception if none found
         List<LeadResponseDto> leads = leadService.getLeadsByOwnerId(id);
 
-        if (leads.isEmpty()) {
-            log.warn("No leads found for ownerId {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(StandardResponse.error("No leads found", null, request.getRequestURI()));
-        }
-
-        log.debug("Found {} leads for ownerId {}", leads.size(), id);
+        // Build the successful response
         StandardResponse<List<LeadResponseDto>> response =
-                StandardResponse.ok(leads, "Leads fetched successfully");
+                StandardResponse.ok(leads, leads.isEmpty() ? "No leads found for this owner" : "Leads fetched successfully");
+
+        // Setting path for tracking/logging purposes as per your StandardResponse structure
         response.setPath(request.getRequestURI());
 
         return ResponseEntity.ok(response);
@@ -103,6 +100,41 @@ public class LeadController {
     }
 
 
+//    @GetMapping("/filter")
+//    public ResponseEntity<StandardResponse<List<LeadResponseDto>>> searchLeads(
+//            @RequestParam(required = false) String contactName,
+//            @RequestParam(required = false) String contactEmail,
+//            @RequestParam(required = false) String company,
+//            @RequestParam(required = false) String opportunityName,
+//            HttpServletRequest request) {
+//
+//        log.info("Searching leads using single filter criteria");
+//
+//        List<LeadResponseDto> leads = leadService.searchLeadsByFilter(
+//                contactName, contactEmail, company, opportunityName);
+//
+//        StandardResponse<List<LeadResponseDto>> response =
+//                StandardResponse.ok(leads, "Search results retrieved successfully");
+//        response.setPath(request.getRequestURI());
+//
+//        return ResponseEntity.ok(response);
+//    }
+
+    @GetMapping("/search")
+    public ResponseEntity<StandardResponse<List<LeadResponseDto>>> searchLeads(
+            @RequestParam(name = "query", required = false) String query,
+            HttpServletRequest request) {
+
+        log.info("Performing global search for leads with query: {}", query);
+
+        List<LeadResponseDto> leads = leadService.searchLeads(query);
+
+        StandardResponse<List<LeadResponseDto>> response =
+                StandardResponse.ok(leads, "Search results retrieved successfully");
+        response.setPath(request.getRequestURI());
+
+        return ResponseEntity.ok(response);
+    }
 
 
     @GetMapping("/internal/stats")
