@@ -1,6 +1,7 @@
 package com.braininventory.leadsphere.user_service.dto;
 
 import com.braininventory.leadsphere.user_service.enums.Role;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
     private Long id; // This will map to your customId (e.g., admin_001)
     private String firstName;
@@ -28,4 +30,6 @@ public class UserResponse {
     private SocialLinksDto social;
 
     private LocalDateTime createdAt;
+
+    private SalesTargetDTO salesTarget;
 }

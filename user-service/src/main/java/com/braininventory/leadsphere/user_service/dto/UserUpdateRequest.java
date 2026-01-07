@@ -32,7 +32,7 @@ public class UserUpdateRequest {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-
+    private Boolean isActive;
 
     @Valid
     private AddressDto address;
@@ -42,4 +42,6 @@ public class UserUpdateRequest {
 
     @Valid
     private CompanyDto company;
+
+    private SalesTargetDTO salesTarget;
 }

@@ -3,6 +3,7 @@ package com.braininventory.leadsphere.user_service.service;
 
 import com.braininventory.leadsphere.user_service.dto.*;
 import com.braininventory.leadsphere.user_service.vo.LoginVO;
+import com.braininventory.leadsphere.user_service.vo.UserSummaryVo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -27,6 +28,8 @@ public interface UserService {
     UserResponse getUserDetails(Long id);
     UserResponse editUser(Long id, UserUpdateRequest updateRequest);
     long countActiveUsers();
+
+    List<UserSummaryVo> getActiveSalesUserSummaries();
 
 
     // add  profile picture

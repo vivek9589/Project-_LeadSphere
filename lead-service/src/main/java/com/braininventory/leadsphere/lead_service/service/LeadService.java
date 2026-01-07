@@ -24,6 +24,9 @@ public interface LeadService {
 
     List<OwnerFilterProjection> getOwnerFilterList();
 
+    // filter method
+    //List<LeadResponseDto> searchLeadsByFilter(String contactName, String contactEmail, String company, String opportunityName);
 
+    List<LeadResponseDto> searchLeads(String query);
 
 }

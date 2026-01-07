@@ -8,12 +8,14 @@ import com.braininventory.leadsphere.user_service.enums.Permission;
 import com.braininventory.leadsphere.user_service.enums.Role;
 import com.braininventory.leadsphere.user_service.exception.FileStorageException;
 import com.braininventory.leadsphere.user_service.exception.ResourceNotFoundException;
+import com.braininventory.leadsphere.user_service.feign.LeadServiceClient;
 import com.braininventory.leadsphere.user_service.repository.UserRepository;
 import com.braininventory.leadsphere.user_service.service.MailService;
 import com.braininventory.leadsphere.user_service.service.UserService;
 import com.braininventory.leadsphere.user_service.vo.LoginVO;
 import com.braininventory.leadsphere.user_service.entity.Address;
 
+import com.braininventory.leadsphere.user_service.vo.UserSummaryVo;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +48,10 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private Cloudinary cloudinary;
+
+    // Inject the Feign Client
+    @Autowired
+    private LeadServiceClient leadServiceClient;
 
 
     @Autowired
@@ -104,7 +111,20 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll()
                 .stream()
                 .filter(user -> user.getRole() == Role.SALES_USER)
-                .map(this::convertToResponseDto)
+                .map(user -> {
+                    UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
+
+                    // Fetch target for each user
+                    try {
+                        StandardResponse<SalesTargetDTO> targetRes = leadServiceClient.getMonthlyTarget(user.getId());
+                        if (targetRes != null && targetRes.isSuccess()) {
+                            dto.setSalesTarget(targetRes.getData());
+                        }
+                    } catch (Exception e) {
+                        log.warn("Target fetch failed for user ID: {}", user.getId());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -170,41 +190,73 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse     getUserDetails(Long id) {
-        log.info("Fetching user details for: {}", id);
-
+    public UserResponse getUserDetails(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        return modelMapper.map(user, UserResponse.class);
+        UserResponse response = modelMapper.map(user, UserResponse.class);
+        attachTargetData(response); // Fetch target via Feign
+
+        return response;
     }
 
 
-
     @Override
+    @Transactional
     public UserResponse editUser(Long id, UserUpdateRequest updateRequest) {
-        log.info("Updating user with ID: {}", id);
+        log.info("Updating user and potentially target for ID: {}", id);
 
-        // 1. Fetch the existing entity
+        // 1. Update User Entity (Local DB)
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // 2. Map basic top-level fields (Firstname, Lastname, etc.)
-        // Note: Ensure your ModelMapper bean is configured with .setSkipNullEnabled(true)
         modelMapper.map(updateRequest, existingUser);
 
-        // 3. Manually handle nested Embedded objects to ensure the @Embeddable
-        // instances are managed correctly within the JPA lifecycle.
         updateAddress(existingUser, updateRequest.getAddress());
         updateCompany(existingUser, updateRequest.getCompany());
         updateSocialLinks(existingUser, updateRequest.getSocial());
 
-        // 4. Persist
-        User savedUser = userRepository.save(existingUser);
-        log.info("Successfully updated user: {}", id);
+        userRepository.save(existingUser);
 
-        // 5. Return the mapped response
-        return modelMapper.map(savedUser, UserResponse.class);
+        // 2. Set Target via Feign (Lead Service)
+        if (existingUser.getRole() == Role.SALES_USER && updateRequest.getSalesTarget() != null) {
+            SalesTargetDTO targetDto = updateRequest.getSalesTarget();
+
+            // --- NEW LOGIC: Default to Current Month/Year if null ---
+            LocalDate now = LocalDate.now();
+            if (targetDto.getTargetMonth() == null) {
+                targetDto.setTargetMonth(now.getMonthValue());
+            }
+            if (targetDto.getTargetYear() == null) {
+                targetDto.setTargetYear(now.getYear());
+            }
+            // -------------------------------------------------------
+
+            try {
+                leadServiceClient.setTarget(id, targetDto);
+            } catch (Exception e) {
+                log.error("Feign Error: Could not set target in Lead Service", e);
+            }
+        }
+
+        // 3. Prepare Response and "Enrich" with latest target
+        UserResponse response = modelMapper.map(existingUser, UserResponse.class);
+        attachTargetData(response);
+
+        return response;
+    }
+    // Helper method to keep logic simple
+    private void attachTargetData(UserResponse response) {
+        if (response.getRole() == Role.SALES_USER) {
+            try {
+                StandardResponse<SalesTargetDTO> targetRes = leadServiceClient.getMonthlyTarget(response.getId());
+                if (targetRes != null && targetRes.isSuccess()) {
+                    response.setSalesTarget(targetRes.getData());
+                }
+            } catch (Exception e) {
+                log.warn("Lead Service target fetch failed for user {}", response.getId());
+            }
+        }
     }
 
 
@@ -266,6 +318,12 @@ public class UserServiceImpl implements UserService {
     public long countActiveUsers() {
         log.info("Calculating total active users");
         return userRepository.countByIsActiveTrueAndRole(Role.SALES_USER);
+    }
+
+
+    @Override
+    public List<UserSummaryVo> getActiveSalesUserSummaries() {
+        return userRepository.findActiveSalesUserSummaries();
     }
 
     @Override
