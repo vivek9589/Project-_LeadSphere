@@ -202,6 +202,7 @@ public class LeadServiceImpl implements LeadService {
         lead.setSource(dto.getSource());
         lead.setOwner(dto.getOwner());
         lead.setOwnerId(dto.getOwnerId());
+        lead.setRemark((dto.getRemark()));
     }
 
     private LeadResponseDto convertToResponseDto(Lead lead) {
@@ -218,6 +219,7 @@ public class LeadServiceImpl implements LeadService {
         dto.setSource(lead.getSource());
         dto.setOwnerId(lead.getOwnerId());
         dto.setOwner(lead.getOwner());
+        dto.setRemark(lead.getRemark());
         dto.setCreatedAt(lead.getCreatedAt());
         dto.setUpdatedAt(lead.getUpdatedAt());
         return dto;

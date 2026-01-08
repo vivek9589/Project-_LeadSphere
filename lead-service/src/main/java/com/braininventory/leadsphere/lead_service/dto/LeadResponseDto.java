@@ -21,6 +21,7 @@ public class LeadResponseDto {
     private String source;
     private Long ownerId;
     private String owner;
+    private String remark;
     private LocalDateTime  createdAt;
     private LocalDateTime updatedAt;
 }
