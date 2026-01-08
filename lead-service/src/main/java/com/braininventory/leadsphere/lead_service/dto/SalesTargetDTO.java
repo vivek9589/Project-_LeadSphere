@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SalesTargetDTO {
     private Double monthlyTarget;
+    private Double yearlyTarget;
     private Double quarterlyTarget;
     private Integer targetMonth;
     private Integer targetYear;

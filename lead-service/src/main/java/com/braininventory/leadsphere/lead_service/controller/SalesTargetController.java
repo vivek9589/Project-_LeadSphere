@@ -18,13 +18,14 @@ public class SalesTargetController {
     private SalesTargetService salesTargetService;
 
     // Matches POST /leads/targets/{userId}
-    @PostMapping("/set-target/{userId}")
-    public ResponseEntity<StandardResponse<SalesTarget>> setTarget(
+// Matches PATCH /leads/targets/{userId}
+    @PutMapping("/set-target/{userId}")
+    public ResponseEntity<StandardResponse<SalesTarget>> patchTarget(
             @PathVariable Long userId,
             @RequestBody SalesTargetDTO targetDto) {
 
-        SalesTarget saved = salesTargetService.upsertTarget(userId, targetDto);
-        return ResponseEntity.ok(StandardResponse.ok(saved, "Sales target updated successfully"));
+        SalesTarget updated = salesTargetService.upsertTarget(userId,targetDto);
+        return ResponseEntity.ok(StandardResponse.ok(updated, "Sales target updated successfully"));
     }
 
     // Matches GET /leads/targets/current/{userId}
