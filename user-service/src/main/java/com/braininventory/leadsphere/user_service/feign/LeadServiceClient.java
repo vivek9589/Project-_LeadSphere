@@ -4,16 +4,13 @@ import com.braininventory.leadsphere.user_service.config.FeignConfig;
 import com.braininventory.leadsphere.user_service.dto.SalesTargetDTO;
 import com.braininventory.leadsphere.user_service.dto.StandardResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 @FeignClient(name = "lead-service", configuration = FeignConfig.class)
 public interface LeadServiceClient {
 
-    // Must match the POST in SalesTargetController
-    @PostMapping("/leads/set-target/{userId}")
+
+    @PutMapping("/leads/set-target/{userId}")
     StandardResponse<SalesTargetDTO> setTarget(
             @PathVariable("userId") Long userId,
             @RequestBody SalesTargetDTO targetDto

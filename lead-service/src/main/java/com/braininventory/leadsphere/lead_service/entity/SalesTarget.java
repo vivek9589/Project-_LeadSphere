@@ -13,6 +13,7 @@ public class SalesTarget {
     private Long id;
     private Long userId;
     private Double monthlyTarget;
+    private Double yearlyTarget;
     private Double quarterlyTarget;
     private Integer targetMonth; // 1-12
     private Integer targetYear;  // 2026

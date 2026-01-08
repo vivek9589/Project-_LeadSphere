@@ -11,6 +11,7 @@ public class LeadStatsDto {
     private int totalLeads;
     private int convertedLeads;
     private int conversionRate; // percentage
+    private double totalPipelineValue;
 }
 
 

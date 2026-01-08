@@ -224,6 +224,7 @@ public class UserServiceImpl implements UserService {
 
             // --- NEW LOGIC: Default to Current Month/Year if null ---
             LocalDate now = LocalDate.now();
+
             if (targetDto.getTargetMonth() == null) {
                 targetDto.setTargetMonth(now.getMonthValue());
             }

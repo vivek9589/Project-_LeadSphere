@@ -51,9 +51,11 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
 
             long convertedLeads = leadRepository.countByStatus(LeadStatus.WON);
             int conversionRate = (int) ((convertedLeads * 100) / totalLeads);
+            double totalPipelineValue = 0;
+
 
             return LeadDashboardResponse.builder()
-                    .leadStats(new LeadStatsDto((int) totalLeads, (int) convertedLeads, conversionRate))
+                    .leadStats(new LeadStatsDto((int) totalLeads, (int) convertedLeads, conversionRate,totalPipelineValue))
                     .leadsByOwner(leadRepository.getLeadsByOwner())
                     .leadsBySource(leadRepository.getLeadsBySource())
                     .convertedLeadsByOwner(leadRepository.getConvertedLeadsByOwner(LeadStatus.WON))
@@ -68,7 +70,7 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
 
     private LeadDashboardResponse createEmptyResponse() {
         return LeadDashboardResponse.builder()
-                .leadStats(new LeadStatsDto(0, 0, 0))
+                .leadStats(new LeadStatsDto(0, 0, 0,0))
                 .leadsByOwner(List.of())
                 .leadsBySource(List.of())
                 .convertedLeadsByOwner(List.of())
@@ -88,6 +90,13 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
 
         int convertedLeads = wonLeads.size();
         int conversionRate = (totalLeads == 0) ? 0 : (convertedLeads * 100) / totalLeads;
+
+        double totalPipelineValue = wonLeads.stream()
+                .mapToDouble(Lead::getValue) // extract the Double field
+                .sum();
+
+
+
 
         // 1. Overall Charts
         List<LeadOwnerCountDto> leadsByOwner = allFilteredLeads.stream()
@@ -116,7 +125,7 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
                 .toList();
 
         return LeadDashboardResponse.builder()
-                .leadStats(new LeadStatsDto(totalLeads, convertedLeads, conversionRate))
+                .leadStats(new LeadStatsDto(totalLeads, convertedLeads, conversionRate,totalPipelineValue))
                 .leadsByOwner(leadsByOwner)
                 .leadsBySource(leadsBySource)
                 .convertedLeadsByOwner(convByOwner)

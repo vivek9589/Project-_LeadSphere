@@ -30,4 +30,5 @@ public class LeadRequestDto {
     private String source;
     private String owner;
     private Long ownerId; // Received from the frontend selection
+    private String remark;
 }
