@@ -42,6 +42,10 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
                 .filter(l -> l.getStatus() == LeadStatus.WON)
                 .toList();
 
+        double totalPipelineValue = wonLeads.stream()
+                .mapToDouble(Lead::getValue) // extract the Double field
+                .sum();
+
         // 2. Fetch Performance Metrics from existing calculation logic
         SalesPerformanceDTO performance = calculateUserPerformanceMetrics(ownerId);
 
@@ -51,7 +55,7 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
                         filteredLeads.size(),
                         wonLeads.size(),
                         (filteredLeads.isEmpty()) ? 0 : (wonLeads.size() * 100) / filteredLeads.size()
-                ))
+                ,totalPipelineValue))
                 .leadsBySource(processSourceCounts(filteredLeads))
                 .convertedLeadsBySource(processSourceCounts(wonLeads))
                 .monthlyAttainment(performance.getMonthlyAttainment())
