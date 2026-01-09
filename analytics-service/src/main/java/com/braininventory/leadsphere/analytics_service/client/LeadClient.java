@@ -13,11 +13,11 @@ import java.time.LocalDate;
 @FeignClient(name = "LEAD-SERVICE")
 public interface LeadClient {
 
-    @GetMapping("/lead/internal/stats")
+    @GetMapping("/lead/internal/stats") // Make sure the path is correct (/lead/internal/stats)
     StandardResponse<LeadDashboardResponse> getFilteredStats(
             @RequestParam("start") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate start,
             @RequestParam("end") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate end,
-            @RequestParam(value = "owner", required = false) String owner
+            @RequestParam("ownerId") Long ownerId // Explicitly name it
     );
 
 

@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
             DuplicateInviteException ex,
             HttpServletRequest request) {
         return ResponseEntity.badRequest().body(
-                StandardResponse.error("Duplicate invite", ex.getMessage(), request.getRequestURI())
+                StandardResponse.error("Already exists", ex.getMessage(), request.getRequestURI())
         );
     }
 

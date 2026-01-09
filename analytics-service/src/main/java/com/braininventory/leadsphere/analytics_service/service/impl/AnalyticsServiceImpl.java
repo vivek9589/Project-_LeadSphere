@@ -8,7 +8,9 @@ import com.braininventory.leadsphere.analytics_service.service.AnalyticsService;
 import com.braininventory.leadsphere.analytics_service.service.DateRangeCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
@@ -19,32 +21,34 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     private final LeadClient leadClient;
     private final DateRangeCalculator dateCalculator;
-
     @Override
-    public LeadDashboardResponse getDashboard(String range, String ownerFilter, boolean isAdmin) {
-        log.info("Generating dashboard for range: {}, owner: {}, isAdmin: {}", range, ownerFilter, isAdmin);
+    public LeadDashboardResponse getDashboard(String range, Long ownerIdFilter, boolean isAdmin) {
+        log.info("Generating dashboard for range: {}, ownerId: {}, isAdmin: {}", range, ownerIdFilter, isAdmin);
 
-        // 1. Calculate Dates
         LocalDate startDate = dateCalculator.getStartDate(range);
         LocalDate endDate = LocalDate.now();
 
-        // 2. Identity Resolution Logic
-        String finalOwner;
+        Long finalOwnerId;
         if (isAdmin) {
-            // If Admin selects a name, use it. If not, use NULL to see the WHOLE company.
-            finalOwner = (ownerFilter != null && !ownerFilter.trim().isEmpty()) ? ownerFilter : null;
+            // Admin uses the passed ID or null for global view
+            finalOwnerId = ownerIdFilter;
         } else {
-            // Sales Users are strictly forced to their own identity (Email/Username)
-            finalOwner = SecurityContextHolder.getContext().getAuthentication().getName();
+            // 1. Get JWT from SecurityContext
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Jwt jwt = (Jwt) auth.getPrincipal();
+
+            // 2. Extract the 'id' claim we added to the JWT earlier
+            finalOwnerId = jwt.getClaim("id");
         }
 
-        log.info("Requesting Lead Service with finalOwner: {}", finalOwner);
+        log.info("Requesting Lead Service with finalOwnerId: {}", finalOwnerId);
 
-        // 3. Call Lead Service
         try {
-            return leadClient.getFilteredStats(startDate, endDate, finalOwner).getData();
+            log.info("Requesting Lead Service with finalOwnerId: {}", finalOwnerId);
+            // Ensure finalOwnerId is not being overwritten by a local variable
+            return leadClient.getFilteredStats(startDate, endDate, finalOwnerId).getData();
         } catch (Exception e) {
-            log.error("Communication failure: {}", e.getMessage());
+            log.error("Lead Service communication failure: {}", e.getMessage());
             throw new RuntimeException("Lead Service is currently unreachable");
         }
     }

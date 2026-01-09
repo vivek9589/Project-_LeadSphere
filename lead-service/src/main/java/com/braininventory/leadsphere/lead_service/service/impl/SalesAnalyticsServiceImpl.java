@@ -34,8 +34,8 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
     @Transactional(readOnly = true)
     public UserPerformanceDashboardResponseDTO getConsolidatedUserDashboard(LocalDate start, LocalDate end, Long ownerId) {
 
-        // 1. Fetch leads using the corrected Specification signature
-        Specification<Lead> spec = LeadSpecifications.getFilteredLeads(start, end, null, ownerId);
+        // FIX: Removed the extra 'null' argument to match the 3-parameter method signature
+        Specification<Lead> spec = LeadSpecifications.getFilteredLeads(start, end, ownerId);
         List<Lead> filteredLeads = leadRepository.findAll(spec);
 
         List<Lead> wonLeads = filteredLeads.stream()
@@ -43,25 +43,26 @@ public class SalesAnalyticsServiceImpl implements SalesAnalyticsService {
                 .toList();
 
         double totalPipelineValue = wonLeads.stream()
-                .mapToDouble(Lead::getValue) // extract the Double field
+                .mapToDouble(l -> l.getValue() != null ? l.getValue() : 0.0)
                 .sum();
 
-        // 2. Fetch Performance Metrics from existing calculation logic
+        // 2. Fetch Performance Metrics
         SalesPerformanceDTO performance = calculateUserPerformanceMetrics(ownerId);
 
-        // 3. Build the NEW Response DTO
+        // 3. Build Response
         return UserPerformanceDashboardResponseDTO.builder()
                 .leadStats(new LeadStatsDto(
                         filteredLeads.size(),
                         wonLeads.size(),
-                        (filteredLeads.isEmpty()) ? 0 : (wonLeads.size() * 100) / filteredLeads.size()
-                ,totalPipelineValue))
+                        (filteredLeads.isEmpty()) ? 0 : (wonLeads.size() * 100) / filteredLeads.size(),
+                        totalPipelineValue))
                 .leadsBySource(processSourceCounts(filteredLeads))
                 .convertedLeadsBySource(processSourceCounts(wonLeads))
                 .monthlyAttainment(performance.getMonthlyAttainment())
                 .quarterlyTrend(performance.getQuarterlyTrend())
                 .build();
     }
+
 
     private List<LeadSourceCountDto> processSourceCounts(List<Lead> leads) {
         return leads.stream()

@@ -35,6 +35,9 @@ public interface UserService {
     // add  profile picture
     public UserResponse  updateAvatar(Long id, MultipartFile file);
 
+    // get profile pic by id
+    public String getAvatarById(Long id);
+
 
 }
 

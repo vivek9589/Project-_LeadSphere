@@ -165,4 +165,25 @@ public class UserController {
         );
     }
 
+    @GetMapping("/profile/pic/{id}")
+    public ResponseEntity<StandardResponse<String>> getProfilePicById(@PathVariable Long id,
+                                                                      HttpServletRequest request) {
+        log.info("Fetching avatar for userId={}", id);
+
+        String avatarUrl = userService.getAvatarById(id);
+
+        StandardResponse<String> response = StandardResponse.ok(
+                avatarUrl,
+                "Profile picture fetched successfully"
+        );
+        response.setPath(request.getRequestURI());
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+
+
 }

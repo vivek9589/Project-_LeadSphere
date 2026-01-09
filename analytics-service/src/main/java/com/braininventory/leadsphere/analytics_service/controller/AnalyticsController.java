@@ -18,9 +18,9 @@ public class AnalyticsController {
     @GetMapping("/admin/dashboard")
     public ResponseEntity<StandardResponse<LeadDashboardResponse>> getAdminDashboard(
             @RequestParam(defaultValue = "total") String range,
-            @RequestParam(required = false) String ownerName) {
+            @RequestParam(required = false) Long ownerId) { // Changed String to Long
 
-        LeadDashboardResponse data = analyticsService.getDashboard(range, ownerName, true);
+        LeadDashboardResponse data = analyticsService.getDashboard(range,  ownerId, true);
         return ResponseEntity.ok(StandardResponse.ok(data, "Admin dashboard data retrieved"));
     }
 
@@ -28,7 +28,7 @@ public class AnalyticsController {
     public ResponseEntity<StandardResponse<LeadDashboardResponse>> getUserDashboard(
             @RequestParam(defaultValue = "this_month") String range) {
 
-        LeadDashboardResponse data = analyticsService.getDashboard(range, null, false);
+        LeadDashboardResponse data = analyticsService.getDashboard(range,  null, false);
         return ResponseEntity.ok(StandardResponse.ok(data, "User dashboard data retrieved"));
     }
 

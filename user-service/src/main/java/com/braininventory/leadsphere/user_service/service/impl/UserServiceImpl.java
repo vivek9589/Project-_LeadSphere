@@ -355,6 +355,22 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    public String getAvatarById(Long id) {
+        log.debug("Looking up avatar for userId={}", id);
+
+        return userRepository.findById(id)
+                .map(user -> {
+                    if (user.getAvatar() == null || user.getAvatar().isBlank()) {
+                        throw new ResourceNotFoundException("No profile picture found for user id " + id);
+                    }
+                    return user.getAvatar();
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + id));
+    }
+
+
+
+
 
 
     private UserResponseDto convertToResponseDto(User user) {

@@ -121,33 +121,37 @@ public class LeadController {
 //    }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('ROLE_SALES_USER', 'ROLE_ADMIN')")
     public ResponseEntity<StandardResponse<List<LeadResponseDto>>> searchLeads(
             @RequestParam(name = "query", required = false) String query,
             HttpServletRequest request) {
 
-        log.info("Performing global search for leads with query: {}", query);
+        log.info("Scoped search initiated for query: {}", query);
 
         List<LeadResponseDto> leads = leadService.searchLeads(query);
 
+        // 1. Create the response object first
         StandardResponse<List<LeadResponseDto>> response =
                 StandardResponse.ok(leads, "Search results retrieved successfully");
+
+        // 2. Set the path (This method returns void, so it must be on its own line)
         response.setPath(request.getRequestURI());
 
+        // 3. Return the fully prepared response
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/internal/stats")
     public ResponseEntity<StandardResponse<LeadDashboardResponse>> getInternalStats(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
-            @RequestParam(required = false) String owner) {
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(value = "ownerId", required = false) Long ownerId) {
 
-        log.info("Internal stats requested for owner: {} between {} and {}", owner, start, end);
+        log.info("RECEIVED IN LEAD-SERVICE -> ownerId: {}", ownerId); // Check your logs for this!
+
         return ResponseEntity.ok(StandardResponse.ok(
-                leadDashboardService.getFilteredDashboard(start, end, owner),
+                leadDashboardService.getFilteredDashboard(start, end, ownerId),
                 "Data fetched successfully"));
     }
-
 
 }
