@@ -98,12 +98,18 @@ public interface LeadRepository extends JpaRepository<Lead,Long> , JpaSpecificat
 //    List<Lead> findByOpportunityNameContainingIgnoreCase(String opportunityName);
 
 
-    // search by contactName contactEmail company opportunityName
     @Query("SELECT l FROM Lead l WHERE " +
+            "(:ownerId IS NULL OR l.ownerId = :ownerId) AND (" +
             "LOWER(l.contactName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
             "LOWER(l.contactEmail) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
             "LOWER(l.company) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-            "LOWER(l.opportunityName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
-    List<Lead> searchLeadsByGlobalCriteria(@Param("searchTerm") String searchTerm);
+            "LOWER(l.opportunityName) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    List<Lead> searchLeadsByGlobalCriteria(
+            @Param("searchTerm") String searchTerm,
+            @Param("ownerId") Long ownerId);
 
+    // Also need a scoped version for the 'findAll' equivalent
+    List<Lead> findByOwnerId(Long ownerId);
 }
+
+

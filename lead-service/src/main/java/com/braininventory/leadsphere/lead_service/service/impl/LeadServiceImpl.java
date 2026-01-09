@@ -15,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,13 +182,30 @@ public class LeadServiceImpl implements LeadService {
 
     @Override
     public List<LeadResponseDto> searchLeads(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return leadRepository.findAll().stream()
-                    .map(this::convertToResponseDto)
-                    .collect(Collectors.toList());
+        // 1. Get Authentication from SecurityContext
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Jwt jwt = (Jwt) auth.getPrincipal();
+
+        // 2. Extract Role and ID from JWT Claims
+        // Ensure "authorities" and "id" match the keys in your token payload
+        List<String> authorities = jwt.getClaimAsStringList("authorities");
+        boolean isAdmin = authorities != null && authorities.contains("ROLE_ADMIN");
+
+        // Extract ID from token (Highly secure - cannot be spoofed by user)
+        Long ownerId = isAdmin ? null : jwt.getClaim("id");
+
+        String searchTerm = (query != null) ? query.trim() : "";
+        List<Lead> results;
+
+        // 3. Logic: If query is empty, return all (scoped by owner)
+        if (searchTerm.isEmpty()) {
+            results = (ownerId == null) ? leadRepository.findAll() : leadRepository.findByOwnerId(ownerId);
+        } else {
+            // 4. Logic: Search across fields (scoped by owner)
+            results = leadRepository.searchLeadsByGlobalCriteria(searchTerm, ownerId);
         }
 
-        return leadRepository.searchLeadsByGlobalCriteria(query.trim()).stream()
+        return results.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
     }

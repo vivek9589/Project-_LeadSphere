@@ -7,7 +7,7 @@ import java.time.LocalDate;
 public interface LeadDashboardService {
 
     LeadDashboardResponse getLeadDashboard();
-    LeadDashboardResponse getFilteredDashboard(LocalDate start, LocalDate end, String owner);
+    LeadDashboardResponse getFilteredDashboard(LocalDate start, LocalDate end, Long ownerId);
 
     // methods for sales-user dashboard
 

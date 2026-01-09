@@ -77,30 +77,37 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
                 .convertedLeadsBySource(List.of())
                 .build();
     }
+
+
+
     @Override
     @Transactional(readOnly = true)
-    public LeadDashboardResponse getFilteredDashboard(LocalDate start, LocalDate end, String owner) {
-        Specification<Lead> spec = LeadSpecifications.getFilteredLeads(start, end, owner, null);
+    public LeadDashboardResponse getFilteredDashboard(LocalDate start, LocalDate end, Long ownerId) {
+
+        // Fetch leads based on specification
+        Specification<Lead> spec = LeadSpecifications.getFilteredLeads(start, end, ownerId);
         List<Lead> allFilteredLeads = leadRepository.findAll(spec);
 
+        // Basic Metrics
         int totalLeads = allFilteredLeads.size();
         List<Lead> wonLeads = allFilteredLeads.stream()
                 .filter(l -> l.getStatus() == LeadStatus.WON)
                 .toList();
 
         int convertedLeads = wonLeads.size();
-        int conversionRate = (totalLeads == 0) ? 0 : (convertedLeads * 100) / totalLeads;
+        int conversionRate = (totalLeads == 0) ? 0 : (int) Math.round((double) convertedLeads * 100 / totalLeads);
 
         double totalPipelineValue = wonLeads.stream()
-                .mapToDouble(Lead::getValue) // extract the Double field
+                .mapToDouble(l -> l.getValue() != null ? l.getValue() : 0.0)
                 .sum();
 
+        // Helper to handle Null/Empty Owner names for grouping
+        java.util.function.Function<Lead, String> ownerMapper = l ->
+                (l.getOwner() == null || l.getOwner().isBlank()) ? "Unknown Owner" : l.getOwner();
 
-
-
-        // 1. Overall Charts
+        // 1. Overall Charts (Grouped by Owner Name)
         List<LeadOwnerCountDto> leadsByOwner = allFilteredLeads.stream()
-                .collect(Collectors.groupingBy(l -> l.getOwner() != null ? l.getOwner() : "Unknown", Collectors.counting()))
+                .collect(Collectors.groupingBy(ownerMapper, Collectors.counting()))
                 .entrySet().stream()
                 .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue(), getColorForOwner(e.getKey())))
                 .toList();
@@ -111,9 +118,9 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
                 .map(e -> new LeadSourceCountDto(e.getKey(), e.getValue(), getColorForSource(e.getKey())))
                 .toList();
 
-        // 2. Converted Charts
+        // 2. Converted Charts (Grouped by Owner Name)
         List<LeadOwnerCountDto> convByOwner = wonLeads.stream()
-                .collect(Collectors.groupingBy(l -> l.getOwner() != null ? l.getOwner() : "Unknown", Collectors.counting()))
+                .collect(Collectors.groupingBy(ownerMapper, Collectors.counting()))
                 .entrySet().stream()
                 .map(e -> new LeadOwnerCountDto(e.getKey(), e.getValue(), getColorForOwner(e.getKey())))
                 .toList();
@@ -125,7 +132,7 @@ public class LeadDashboardServiceImpl implements LeadDashboardService {
                 .toList();
 
         return LeadDashboardResponse.builder()
-                .leadStats(new LeadStatsDto(totalLeads, convertedLeads, conversionRate,totalPipelineValue))
+                .leadStats(new LeadStatsDto(totalLeads, convertedLeads, conversionRate, totalPipelineValue))
                 .leadsByOwner(leadsByOwner)
                 .leadsBySource(leadsBySource)
                 .convertedLeadsByOwner(convByOwner)

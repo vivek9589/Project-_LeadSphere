@@ -30,7 +30,10 @@ public class SalesTargetServiceImpl implements SalesTargetService {
             target.setYearlyTarget(dto.getYearlyTarget());
 
             // Reflect yearly target into monthly target as the same value
-            target.setMonthlyTarget(dto.getYearlyTarget());
+           if(dto.getMonthlyTarget() == null)
+           {
+               target.setMonthlyTarget(dto.getYearlyTarget());
+           }
 
         }
         if (dto.getQuarterlyTarget() != null) {
