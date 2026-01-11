@@ -18,7 +18,16 @@
         <outputRelativeToContentRoot value="true" />
         <module name="leadsphere-parent" />
         <module name="eureka-server" />
-        <module name="auth-service" />
+      </profile>
+      <profile name="Annotation profile for JWT-Auth-Service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.9/spring-boot-configuration-processor-3.5.9.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="JWT-Auth-Service" />
       </profile>
       <profile name="Annotation profile for User Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -32,10 +41,14 @@
         <module name="user-service" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="auth-service" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Gateway" options="-parameters" />
+      <module name="JWT-Auth-Service" options="-parameters" />
       <module name="analytics-service" options="-parameters" />
       <module name="auth-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />

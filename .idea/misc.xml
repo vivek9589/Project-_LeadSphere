@@ -8,9 +8,9 @@
         <option value="$PROJECT_DIR$/lead-service/pom.xml" />
         <option value="$PROJECT_DIR$/leadsphere-parent/pom.xml" />
         <option value="$PROJECT_DIR$/user-service/pom.xml" />
-        <option value="$PROJECT_DIR$/auth-service/pom.xml" />
         <option value="$PROJECT_DIR$/eureka-server/pom.xml" />
         <option value="$PROJECT_DIR$/analytics-service/pom.xml" />
+        <option value="$PROJECT_DIR$/JWT-Auth-Service/pom.xml" />
       </list>
     </option>
   </component>
