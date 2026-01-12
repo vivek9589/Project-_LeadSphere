@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(
         name = "USER-SERVICE", // Matches the name in Eureka/Service Discovery
         contextId = "userServiceClient",
-        configuration = FeignClientConfig.class // Links the JWT Interceptor
+        configuration = FeignClientConfig.class
 )
 public interface UserClient {
 
