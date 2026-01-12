@@ -92,14 +92,11 @@ public class UserServiceImpl implements UserService {
     public UserResponse deleteSalesUser(Long id) {
         log.info("Attempting to delete user with ID: {}", id);
 
-        // 1. Find user or throw our custom exception
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Sales User not found with id: " + id));
 
-        // 2. Map to DTO before deleting from DB
         UserResponse response = modelMapper.map(user, UserResponse.class);
-
-        // 3. Perform deletion
         userRepository.delete(user);
 
         log.info("Successfully deleted user with ID: {}", id);
@@ -114,7 +111,6 @@ public class UserServiceImpl implements UserService {
                 .map(user -> {
                     UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
 
-                    // Fetch target for each user
                     try {
                         StandardResponse<SalesTargetDTO> targetRes = leadServiceClient.getMonthlyTarget(user.getId());
                         if (targetRes != null && targetRes.isSuccess()) {
@@ -141,10 +137,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email);
         System.out.println("current user " + user);
         if (user == null) {
-            return null; // or throw custom exception
+            return null;
         }
-
-        // Extract permissions from the role
 
         Set<String> permissions = user.getRole().getPermissions().stream()
                 .map(Permission::getPermission)
@@ -155,7 +149,7 @@ public class UserServiceImpl implements UserService {
 
         loginVO.setId(user.getId());
         loginVO.setEmail(user.getEmail());
-        loginVO.setPassword(user.getPassword()); // must already be BCrypt hash in DB
+        loginVO.setPassword(user.getPassword());
         loginVO.setRole(user.getRole());
         loginVO.setPermissions(permissions);
 
@@ -183,9 +177,6 @@ public class UserServiceImpl implements UserService {
         return byIsActive.stream()
                 .map(this ::convertToResponseDto)
                 .collect(Collectors.toList());
-
-
-
     }
 
     @Override
@@ -222,7 +213,7 @@ public class UserServiceImpl implements UserService {
         if (existingUser.getRole() == Role.SALES_USER && updateRequest.getSalesTarget() != null) {
             SalesTargetDTO targetDto = updateRequest.getSalesTarget();
 
-            // --- NEW LOGIC: Default to Current Month/Year if null ---
+
             LocalDate now = LocalDate.now();
 
             if (targetDto.getTargetMonth() == null) {
@@ -231,7 +222,6 @@ public class UserServiceImpl implements UserService {
             if (targetDto.getTargetYear() == null) {
                 targetDto.setTargetYear(now.getYear());
             }
-            // -------------------------------------------------------
 
             try {
                 leadServiceClient.setTarget(id, targetDto);
@@ -240,13 +230,14 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        // 3. Prepare Response and "Enrich" with latest target
+
         UserResponse response = modelMapper.map(existingUser, UserResponse.class);
         attachTargetData(response);
 
         return response;
     }
-    // Helper method to keep logic simple
+
+
     private void attachTargetData(UserResponse response) {
         if (response.getRole() == Role.SALES_USER) {
             try {
@@ -287,8 +278,6 @@ public class UserServiceImpl implements UserService {
 
         Company company = user.getCompany();
 
-        // 1. Check DTO for 'getName' (based on your JSON "name": "BI")
-        // 2. Call Entity 'setName'
         if (dto.getName() != null) {
             company.setName(dto.getName());
         }

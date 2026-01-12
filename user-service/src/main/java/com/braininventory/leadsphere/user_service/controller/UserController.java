@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 
-@RestController // Ensure this is present
+@RestController
 @Slf4j
 @RequestMapping("/sales-user")
 public class UserController {
@@ -29,7 +29,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    // Only users with 'user:create' OR the 'ROLE_ADMIN' can create
+
     @PostMapping("/create")
     @PreAuthorize("hasAnyAuthority('user:create', 'ROLE_ADMIN')")
     public ResponseEntity<UserResponseDto> createSalesUser(@RequestBody UserRequestDto userRequestDto) {
@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @PutMapping("/update/{id}")
-    @PreAuthorize("hasAnyAuthority('user:update', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserResponseDto> updateSalesUser(@PathVariable Long id,
                                                            @RequestBody UserRequestDto userRequestDto) {
         return ResponseEntity.ok(userService.updateSalesUser(id, userRequestDto));
@@ -131,7 +131,7 @@ public class UserController {
     }
 
     @DeleteMapping("/deleteBy/{id}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')") // High-level security best practice
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<StandardResponse<UserResponse>> deleteSalesUser(@PathVariable Long id) {
 
         UserResponse deletedUser = userService.deleteSalesUser(id);
