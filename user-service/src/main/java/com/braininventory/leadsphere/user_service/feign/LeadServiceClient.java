@@ -16,7 +16,6 @@ public interface LeadServiceClient {
             @RequestBody SalesTargetDTO targetDto
     );
 
-    // Must match the GET in SalesTargetController
     @GetMapping("/leads/get-target/{userId}")
     StandardResponse<SalesTargetDTO> getMonthlyTarget(
             @PathVariable("userId") Long userId

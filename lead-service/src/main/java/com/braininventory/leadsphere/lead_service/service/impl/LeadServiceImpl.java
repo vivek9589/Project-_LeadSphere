@@ -130,11 +130,18 @@ public class LeadServiceImpl implements LeadService {
 
     @Override
     public List<LeadResponseDto> getLeadsByOwnerId(Long id) {
-        UserResponseDto salesUser = userClient.getSalesUserById(id);
-        String ownerName = salesUser.getFirstName() + " " + salesUser.getLastName();
+        // UserResponseDto salesUser = userClient.getSalesUserById(id);
+        // String ownerName = salesUser.getFirstName() + " " + salesUser.getLastName();
 
-        log.info("Fetching leads from repository for ownerName: {}", ownerName);
-        List<Lead> byOwner = leadRepository.findByOwner(ownerName);
+     //   log.info("Fetching leads from repository for ownerName: {}", ownerName);
+      //  List<Lead> byOwner = leadRepository.findByOwner(ownerName);
+
+
+        log.info("Fetching leads from repository for ownerId: {}", id);
+
+        List<Lead> byOwner = leadRepository.findByOwnerId(id);
+
+
 
         log.debug("Repository returned {} leads for ownerId {}", byOwner.size(), id);
 

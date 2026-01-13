@@ -57,6 +57,7 @@ public class SecurityConfig {
     }
 
      */
+
     // Replace your current passwordEncoder bean with this:
     @Bean
     public PasswordEncoder passwordEncoder() {

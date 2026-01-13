@@ -42,7 +42,7 @@ public class JwtTokenService {
         try {
             return Jwts.builder()
                     .setSubject(authentication.getName())
-                    .claim("id", userId)            // <--- Added the ID here
+                    .claim("id", userId)
                     .claim("authorities", authorities)
                     .setIssuedAt(new Date())
                     .setExpiration(new Date(System.currentTimeMillis() + 3600000 * 5))
@@ -55,7 +55,6 @@ public class JwtTokenService {
 
 
     // 2. PARSE: This method is used by your Filter to extract data
-    // It returns Jws<Claims> so that .getBody() works correctly
     public Jws<Claims> parse(String token) {
         return Jwts.parser()
                 .setSigningKey(KEY)

@@ -6,10 +6,9 @@ import com.braininventory.leadsphere.JWT_Auth_Service.entity.AuthRequest;
 public interface AuthService {
 
 
+    LoginResponse login(AuthRequest req);
 
+    void forgotPassword(String email);
 
-     void forgotPassword(String email);
-
-     void resetPassword(String token, String newPassword);
 
 }

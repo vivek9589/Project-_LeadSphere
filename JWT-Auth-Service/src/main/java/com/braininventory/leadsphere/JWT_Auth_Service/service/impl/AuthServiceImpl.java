@@ -8,12 +8,16 @@ import com.braininventory.leadsphere.JWT_Auth_Service.entity.ResetToken;
 import com.braininventory.leadsphere.JWT_Auth_Service.exception.AuthException;
 import com.braininventory.leadsphere.JWT_Auth_Service.feign.NotificationClient;
 import com.braininventory.leadsphere.JWT_Auth_Service.feign.UserClient;
-import com.braininventory.leadsphere.JWT_Auth_Service.repository.ResetTokenRepository;
+import com.braininventory.leadsphere.JWT_Auth_Service.jwt.JwtTokenService;
 import com.braininventory.leadsphere.JWT_Auth_Service.service.AuthService;
+import com.braininventory.leadsphere.JWT_Auth_Service.service.AuthUserDetailsService;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,19 +27,81 @@ import java.util.UUID;
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-    private final ResetTokenRepository tokenRepo;
+
     private final UserClient userClient;
     private final NotificationClient notificationClient;
+    private final JwtTokenService jwtService;
+    private final AuthenticationManager authManager;
 
 
 
-    public AuthServiceImpl(ResetTokenRepository tokenRepo,
-                           UserClient userClient,
-                           NotificationClient notificationClient) {
-        this.tokenRepo = tokenRepo;
+
+    public AuthServiceImpl(
+            UserClient userClient,
+            NotificationClient notificationClient,
+            JwtTokenService jwtService,
+            AuthenticationManager authManager) {
         this.userClient = userClient;
         this.notificationClient = notificationClient;
+        this.jwtService = jwtService;
+        this.authManager = authManager;
     }
+
+
+    @Override
+    public LoginResponse login(AuthRequest req) {
+        log.info("Login attempt for email: {}", req.getEmail());
+
+        // 1. Check if User exists
+        LoginVO userVO;
+        try {
+            userVO = userClient.findByEmail(req.getEmail());
+        } catch (FeignException.NotFound e) {
+            log.warn("Email not found: {}", req.getEmail());
+            throw new AuthException("Email does not exist", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("User service unavailable during login for email: {}", req.getEmail(), e);
+            throw new AuthException("User service is currently unavailable", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+
+        if (userVO == null) {
+            log.warn("User service returned null for email: {}", req.getEmail());
+            throw new AuthException("Email does not exist", HttpStatus.NOT_FOUND);
+        }
+
+        // 2. Authenticate password
+        try {
+            Authentication auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
+            );
+
+            // 3. Generate JWT token
+            String token = jwtService.generateToken(auth);
+            AuthUserDetailsService.AuthUserPrincipal principal =
+                    (AuthUserDetailsService.AuthUserPrincipal) auth.getPrincipal();
+
+            String role = auth.getAuthorities().stream()
+                    .findFirst()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority().replace("ROLE_", ""))
+                    .orElse("USER");
+
+            LoginResponse response = new LoginResponse(
+                    token,
+                    new LoginResponse.UserDto(principal.getId(), auth.getName(), role)
+            );
+
+            log.info("Login successful for email: {}", req.getEmail());
+            return response;
+
+        } catch (BadCredentialsException e) {
+            log.warn("Invalid password for email: {}", req.getEmail());
+            throw new BadCredentialsException("Password is wrong");
+        } catch (Exception e) {
+            log.error("Authentication failed for email: {}", req.getEmail(), e);
+            throw new AuthException("Password is wrong", HttpStatus.UNAUTHORIZED);
+        }
+    }
+
 
 
     @Override
@@ -46,7 +112,6 @@ public class AuthServiceImpl implements AuthService {
         try {
             loginVO = userClient.findByEmail(email);
         } catch (FeignException.NotFound e) {
-            // Requirement: Explicitly notify if email is not found
             throw new AuthException("Email does not exist", HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             log.error("User service communication error for email: {}", email, e);
@@ -69,7 +134,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         try {
-            tokenRepo.save(resetToken);
+            //tokenRepo.save(resetToken);
         } catch (Exception e) {
             log.error("Database error while saving reset token", e);
             throw new AuthException("Failed to initiate password reset. Try again.", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -81,33 +146,6 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             log.error("Email notification failed for email: {}", email, e);
             throw new AuthException("Failed to send reset email. Please try again later.", HttpStatus.SERVICE_UNAVAILABLE);
-        }
-    }
-    @Override
-    public void resetPassword(String token, String newPassword) {
-        // 1. Check if token exists
-        ResetToken resetToken = tokenRepo.findByToken(token)
-                .orElseThrow(() -> new AuthException("The reset link is invalid or has already been used.", HttpStatus.UNAUTHORIZED));
-
-        // 2. Check if token is already used
-        if (resetToken.isUsed()) {
-            throw new AuthException("This reset link has already been used. Please request a new one.", HttpStatus.GONE);
-        }
-
-        // 3. Check if token is expired
-        if (resetToken.getExpiry().isBefore(LocalDateTime.now())) {
-            throw new AuthException("This reset link has expired. Password reset links are valid for 30 minutes.", HttpStatus.GONE);
-        }
-
-        try {
-            // 4. Update password in User Service via Feign
-            userClient.updatePassword(resetToken.getUserId(), new UpdatePasswordRequest(newPassword));
-
-            // 5. Mark token as used only after successful password update
-            resetToken.setUsed(true);
-            tokenRepo.save(resetToken);
-        } catch (Exception e) {
-            throw new AuthException("Unable to update password at this time. Internal service error.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
