@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 // Adjust 'name' and 'url' to your environment or use service discovery if available
 //@FeignClient(name = "user-service", url = "http://localhost:8081/sales-user")
 //@FeignClient(name = "user-service")
+
+
+
 @FeignClient(
         name = "user-service",
         contextId = "userServiceClient", // Add this
@@ -24,3 +27,20 @@ public interface UserClient {
     void updatePassword(@PathVariable("id") Long userId,
                         @RequestBody UpdatePasswordRequest request);
 }
+
+
+
+
+//@FeignClient(
+//        name = "USER-SERVICE", // Must match Eureka Dashboard name
+//        path = "/sales-user",  // This handles the base path prefix
+//        contextId = "userServiceClient"
+//)
+//public interface UserClient {
+//    @GetMapping("/getBy/{email}")
+//    LoginVO findByEmail(@PathVariable("email") String email);
+//
+//    @PutMapping("/{id}/password")
+//    void updatePassword(@PathVariable("id") Long userId,
+//                        @RequestBody UpdatePasswordRequest request);
+//}
