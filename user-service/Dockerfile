@@ -1,24 +1,28 @@
-# Stage 1: The "Kitchen" (Build Stage)
+# --- Stage 1: Build Stage ---
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copy only the shopping list first to cache dependencies
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-# Copy the actual code and cook the JAR
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Stage 2: The "Serving Table" (Runtime Stage)
+# --- Stage 2: Runtime Stage ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Take only the finished dish (JAR) from the kitchen
-COPY --from=build /app/target/user-service-0.0.1-SNAPSHOT.jar app.jar
+# Add wget for health monitoring
+RUN apk add --no-cache wget
 
-# The port the service lives on
+# Security: Spring user context
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Specified artifact name to prevent wildcard conflicts with sources/javadoc JARs
+COPY --from=build /app/target/user-service-*.jar app.jar
+
 EXPOSE 8081
 
-# Serve the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# JVM tuning for Java 21
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

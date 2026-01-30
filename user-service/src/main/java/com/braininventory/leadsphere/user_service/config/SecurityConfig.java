@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/sales-user/getBy/**").permitAll()
                         .requestMatchers("/sales-user/register").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/sales-user/*/password").permitAll()
+                        .requestMatchers("/actuator/**").permitAll() // Must be permitAll
                         .requestMatchers("/notifications/**").permitAll() // Allow access without token
 
                         // 2. All other requests still require a valid JWT

@@ -1,1 +1,1 @@
-package com.braininventory.leadsphere.user_service.dao;public interface Userdao {}
+package com.braininventory.leadsphere.user_service.dao;import java.util.stream.Collectors;public interface Userdao {}
