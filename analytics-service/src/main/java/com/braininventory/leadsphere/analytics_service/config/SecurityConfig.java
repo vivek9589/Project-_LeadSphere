@@ -34,6 +34,7 @@ public class SecurityConfig {
                         // Dashboard access control
                         .requestMatchers("/analytics/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/analytics/sales-user/**").hasAnyAuthority("ROLE_SALES_USER", "ROLE_ADMIN")
+                        .requestMatchers("/actuator/**").permitAll() // Must be permitAll
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

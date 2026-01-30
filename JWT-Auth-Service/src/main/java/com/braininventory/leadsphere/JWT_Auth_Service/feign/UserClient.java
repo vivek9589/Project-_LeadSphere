@@ -13,28 +13,11 @@ import org.springframework.web.bind.annotation.*;
 //@FeignClient(name = "user-service")
 
 
-
-@FeignClient(
-        name = "user-service",
-        contextId = "userServiceClient", // Add this
-        url = "http://localhost:8081/sales-user"
-)
-public interface UserClient {
-    @GetMapping("/getBy/{email}")
-    LoginVO findByEmail(@PathVariable("email") String email);
-
-    @PutMapping("/{id}/password")
-    void updatePassword(@PathVariable("id") Long userId,
-                        @RequestBody UpdatePasswordRequest request);
-}
-
-
-
-
+                    // uncomment for local
 //@FeignClient(
-//        name = "USER-SERVICE", // Must match Eureka Dashboard name
-//        path = "/sales-user",  // This handles the base path prefix
-//        contextId = "userServiceClient"
+//        name = "user-service",
+//        contextId = "userServiceClient", // Add this
+//        url = "http://localhost:8081/sales-user"
 //)
 //public interface UserClient {
 //    @GetMapping("/getBy/{email}")
@@ -44,3 +27,27 @@ public interface UserClient {
 //    void updatePassword(@PathVariable("id") Long userId,
 //                        @RequestBody UpdatePasswordRequest request);
 //}
+//
+
+
+
+//@FeignClient(
+//        name = "user-service", // Match the exact application name
+//        path = "/sales-user",
+//        contextId = "userServiceClient"
+//)
+
+
+@FeignClient(
+        name = "user-service", // Matches spring.application.name of the User-Service
+        path = "/sales-user",
+        contextId = "userServiceClient"
+)
+public interface UserClient {
+    @GetMapping("/getBy/{email}")
+    LoginVO findByEmail(@PathVariable("email") String email);
+
+    @PutMapping("/{id}/password")
+    void updatePassword(@PathVariable("id") Long userId,
+                        @RequestBody UpdatePasswordRequest request);
+}

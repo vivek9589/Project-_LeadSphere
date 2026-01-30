@@ -29,7 +29,7 @@
         </processorPath>
         <module name="JWT-Auth-Service" />
       </profile>
-      <profile name="Annotation profile for User Service" enabled="true">
+      <profile name="Annotation profile for Gateway" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

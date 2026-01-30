@@ -1,24 +1,28 @@
-# Stage 1: Build Stage
+# --- Stage 1: Build Stage ---
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
 COPY pom.xml .
 RUN mvn dependency:go-offline
 
-# Copy source and build the JAR
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-# Stage 2: Runtime Stage
+# --- Stage 2: Runtime Stage ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copy the JAR from the build stage
-COPY --from=build /app/target/analytics-service-0.0.1-SNAPSHOT.jar app.jar
+# Ensure Alpine has wget for health monitoring
+RUN apk add --no-cache wget
 
-# Analytics Service usually runs on 8085
+# Security: Non-root execution
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy Analytics Service artifact
+COPY --from=build /app/target/analytics-service-*.jar app.jar
+
 EXPOSE 8085
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Optimized for high-throughput virtual threads processing
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
