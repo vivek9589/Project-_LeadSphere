@@ -10,7 +10,7 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 # Copy Auth Service artifact from your LOCAL target folder
-COPY target/JWT-Auth-Service-*.jar app.jar
+COPY target/jwt-auth-service-*.jar app.jar
 
 # Auth Service Port
 EXPOSE 8084

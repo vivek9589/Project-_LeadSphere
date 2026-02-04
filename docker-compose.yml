@@ -36,7 +36,7 @@ services:
 
   # --- API GATEWAY ---
   gateway:
-    build: ./Gateway
+    build: ./gateway
     container_name: gateway
     ports:
       - "8080:8080"
@@ -55,7 +55,7 @@ services:
 
   # --- JWT AUTH SERVICE ---
   jwt-auth-service:
-    build: ./JWT-Auth-Service
+    build: ./jwt-auth-service
     container_name: jwt-auth-service
     ports:
       - "8084:8084"

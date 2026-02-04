@@ -30,7 +30,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/3.5.9/spring-boot-configuration-processor-3.5.9.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
-        <module name="JWT-Auth-Service" />
+        <module name="jwt-auth-service" />
       </profile>
       <profile name="Annotation profile for Gateway" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -40,7 +40,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="analytics-service" />
-        <module name="Gateway" />
+        <module name="gateway" />
       </profile>
       <profile name="Annotation profile for User Service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -59,11 +59,11 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="Gateway" options="-parameters" />
-      <module name="JWT-Auth-Service" options="-parameters" />
       <module name="analytics-service" options="-parameters" />
       <module name="auth-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
+      <module name="gateway" options="-parameters" />
+      <module name="jwt-auth-service" options="-parameters" />
       <module name="lead-service" options="-parameters" />
       <module name="leadsphere-parent" options="-parameters" />
       <module name="user-service" options="-parameters" />

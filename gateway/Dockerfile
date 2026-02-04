@@ -11,7 +11,7 @@ USER spring:spring
 
 # Copy the Gateway JAR from your local target folder
 # Note: Ensure the filename pattern matches your actual build output
-COPY target/Gateway-*.jar app.jar
+COPY target/gateway-*.jar app.jar
 
 # Gateway standard port
 EXPOSE 8080
