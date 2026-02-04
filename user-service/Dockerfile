@@ -1,28 +1,19 @@
-# --- Stage 1: Build Stage ---
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
-WORKDIR /app
-
-COPY pom.xml .
-RUN mvn dependency:go-offline
-
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-# --- Stage 2: Runtime Stage ---
+# Runtime Stage
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Add wget for health monitoring
+# Required for 'service_healthy' status checks in Docker Compose
 RUN apk add --no-cache wget
 
-# Security: Spring user context
+# Standard non-root security setup
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-# Specified artifact name to prevent wildcard conflicts with sources/javadoc JARs
-COPY --from=build /app/target/user-service-*.jar app.jar
+# Copy User Service artifact from your LOCAL target folder
+COPY target/user-service-*.jar app.jar
 
+# User Service Port
 EXPOSE 8081
 
-# JVM tuning for Java 21
+# Performance: Optimized for container memory limits
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
