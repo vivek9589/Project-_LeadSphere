@@ -1,31 +1,21 @@
-# --- Stage 1: Build Stage (The Kitchen) ---
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
-WORKDIR /app
-
-# Cache dependencies to speed up subsequent builds
-COPY pom.xml .
-RUN mvn dependency:go-offline
-
-# Package the Eureka application
-COPY src ./src
-RUN mvn clean package -DskipTests
-
-# --- Stage 2: Runtime Stage (The Serving Table) ---
+# Stage: Runtime
+# We use eclipse-temurin because it has excellent native support for both AMD64 and ARM64
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Install wget for Docker health check support
+# 1. Install wget (useful for Docker health checks later)
 RUN apk add --no-cache wget
 
-# Security: Run as a non-privileged user named 'spring'
+# 2. Security: Create a non-root user so the app doesn't run as 'root' in the cloud
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-# Copy the built JAR from the build stage
-COPY --from=build /app/target/eureka-server-*.jar app.jar
+# 3. Copy the JAR from your local 'target' folder (built on your Windows machine)
+# The asterisk (*) ensures it finds the versioned JAR file
+COPY target/eureka-server-*.jar app.jar
 
-# Eureka Default Port
+# 4. Open the port for the service
 EXPOSE 8761
 
-# Performance: JVM flags optimized for container memory limits
+# 5. Run the application with optimized memory settings for containers
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
