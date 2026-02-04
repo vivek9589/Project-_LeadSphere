@@ -45,13 +45,21 @@ jobs:
             echo "-------------------------------------------------------"
             echo "BUILDING: $SERVICE"
             echo "-------------------------------------------------------"
+          
+            # Step 1: Create a short version of the unique Commit SHA
+            SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          
             cd ./$SERVICE
             mvn clean package -DskipTests
           
+            # Step 2: Build and push with TWO tags
+            # We keep :latest for convenience and :$SHORT_SHA for history/rollbacks
             docker buildx build \
               --platform linux/amd64,linux/arm64 \
               -t ${{ secrets.DOCKER_USERNAME }}/$SERVICE:latest \
+              -t ${{ secrets.DOCKER_USERNAME }}/$SERVICE:$SHORT_SHA \
               . --push
+          
             cd ..
           done
 
@@ -80,7 +88,7 @@ jobs:
           script: |
             cd /home/${{ secrets.SSH_USER }}/inventotrack/backend
             # Rename prod file to standard compose name
-            mv docker-compose.prod.yml docker-compose.yml
+            mv docker-compose.prod.yml docker-compose.latest.yml
             # Execute deployment
             docker compose pull
             docker compose up -d --force-recreate
