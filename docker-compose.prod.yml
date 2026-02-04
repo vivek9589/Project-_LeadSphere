@@ -1,0 +1,134 @@
+services:
+  # 1. Database
+  leadsphere-db:
+    image: mysql:8.0
+    container_name: leadsphere-db
+    restart: always
+    environment:
+      - MYSQL_DATABASE=leadsphere
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_ROOT_HOST=%
+    volumes:
+      - inveniocore_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - inventotrack-network
+
+  # 2. Service Discovery
+  eureka-server:
+    image: vivek9589/eureka-server:latest
+    container_name: eureka-server
+    restart: always
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+    networks:
+      - inventotrack-network
+
+  # 3. API Gateway
+  gateway:
+    image: vivek9589/gateway:latest
+    container_name: gateway
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+
+    depends_on:
+      - eureka-server
+    networks:
+      - inventotrack-network
+
+  # 4. User Service
+  user-service:
+    image: vivek9589/user-service:latest
+    container_name: user-service
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://leadsphere-db:3306/leadsphere
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=v.rathore@braininventory.com
+      - SPRING_MAIL_PASSWORD=vdlvxahgjdhawttt
+      - CLOUDINARY_CLOUD_NAME=dnpmn8agl
+      - CLOUDINARY_API_KEY=495935492247926
+      - CLOUDINARY_API_SECRET=q5aCjnudT0Svb7Hqu1M9t8AW8m4
+    depends_on:
+      leadsphere-db:
+        condition: service_healthy
+    networks:
+      - inventotrack-network
+
+  # 5. Lead Service
+  lead-service:
+    image: vivek9589/lead-service:latest
+    container_name: lead-service
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://leadsphere-db:3306/leadsphere
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      leadsphere-db:
+        condition: service_healthy
+    networks:
+      - inventotrack-network
+
+  # 6. JWT Auth Service
+  jwt-auth-service:
+    image: vivek9589/jwt-auth-service:latest
+    container_name: jwt-auth-service
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+      - SPRING_DATASOURCE_URL=jdbc:mysql://leadsphere-db:3306/leadsphere
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      leadsphere-db:
+        condition: service_healthy
+    networks:
+      - inventotrack-network
+
+  # 7. Analytics Service
+  analytics-service:
+    image: vivek9589/analytics-service:latest
+    container_name: analytics-service
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - inventotrack-network
+
+networks:
+  inventotrack-network:
+    driver: bridge
+
+volumes:
+  inveniocore_db_data:
